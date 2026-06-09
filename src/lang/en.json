@@ -1,0 +1,21 @@
+{
+  "title": "Counter-Shooter",
+  "play": "Play",
+  "rules": "How to play?",
+  "language": "Language",
+  "languageCode": "EN",
+  "rulesTitle": "How to play?",
+  "rulesText": [
+    "Move the player with WASD or arrow keys.",
+    "Shoot with SPACE or mouse click.",
+    "Destroy enemies to earn points.",
+    "If an enemy touches the player, you lose one life."
+  ],
+  "back": "ESC to return to menu",
+  "score": "Score",
+  "lives": "Lives",
+  "controls": "Move: WASD/arrows | Shoot: SPACE/click",
+  "gameOver": "Game Over",
+  "restart": "Press R to restart",
+  "gameOverMenu": "ESC to return to menu"
+}

@@ -8,54 +8,14 @@ const MAX_ENEMIES = 20;
 const ENEMY_SCORE = 10;
 const STARTING_LIVES = 3;
 
-// Idioma
-const LANGUAGES = {
-  pt: {
-    play: "Jogar",
-    rules: "Como jogar?",
-    language: "Idioma",
-    rulesTitle: "Como jogar?",
-    rulesText: [
-      "Move o jogador com WASD ou as setas.",
-      "Dispara com SPACE ou clique do rato.",
-      "Elimina inimigos para ganhar pontos.",
-      "Se um inimigo tocar no jogador, perdes uma vida."
-    ],
-    back: "ESC para voltar ao menu",
-    score: "Pontuacao",
-    lives: "Vidas",
-    controls: "Mover: WASD/setas | Disparar: SPACE/clique",
-    gameOver: "Game Over",
-    restart: "Pressiona R para reiniciar",
-    gameOverMenu: "ESC para voltar ao menu"
-  },
-  en: {
-    play: "Play",
-    rules: "How to play?",
-    language: "Language",
-    rulesTitle: "How to play?",
-    rulesText: [
-      "Move the player with WASD or arrow keys.",
-      "Shoot with SPACE or mouse click.",
-      "Destroy enemies to earn points.",
-      "If an enemy touches the player, you lose one life."
-    ],
-    back: "ESC to return to menu",
-    score: "Score",
-    lives: "Lives",
-    controls: "Move: WASD/arrows | Shoot: SPACE/click",
-    gameOver: "Game Over",
-    restart: "Press R to restart",
-    gameOverMenu: "ESC to return to menu"
-  }
-};
-
 const gameState = {
   language: "pt"
 };
 
+const translations = {};
+
 function getText(key) {
-  return LANGUAGES[gameState.language][key];
+  return translations[gameState.language][key];
 }
 
 function toggleLanguage() {
@@ -68,7 +28,12 @@ class MenuScene extends Phaser.Scene {
     super("MenuScene");
   }
 
+  preload() {
+    loadTranslationFiles(this);
+  }
+
   create() {
+    setupTranslations(this);
     setupMenu(this);
   }
 }
@@ -80,6 +45,7 @@ class RulesScene extends Phaser.Scene {
   }
 
   create() {
+    setupTranslations(this);
     setupRules(this);
   }
 }
@@ -94,6 +60,7 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
+    setupTranslations(this);
     createTextures(this);
     setupGameState(this);
     setupPlayer(this);
@@ -133,12 +100,23 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+// Traducao
+function loadTranslationFiles(scene) {
+  scene.load.json("lang_pt", "src/lang/pt.json");
+  scene.load.json("lang_en", "src/lang/en.json");
+}
+
+function setupTranslations(scene) {
+  translations.pt = scene.cache.json.get("lang_pt");
+  translations.en = scene.cache.json.get("lang_en");
+}
+
 // Menu e regras
 function setupMenu(scene) {
   scene.selectedOption = 0;
   scene.menuTexts = [];
 
-  scene.titleText = scene.add.text(scene.scale.width / 2, 120, "Counter-Shooter", {
+  scene.titleText = scene.add.text(scene.scale.width / 2, 120, getText("title"), {
     fontSize: "48px",
     color: "#ffffff"
   }).setOrigin(0.5);
@@ -184,7 +162,7 @@ function getMenuOptions() {
   return [
     getText("play"),
     getText("rules"),
-    `${getText("language")}: ${gameState.language.toUpperCase()}`
+    `${getText("language")}: ${getText("languageCode")}`
   ];
 }
 
