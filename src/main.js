@@ -14,7 +14,6 @@ const LANGUAGES = {
     play: "Jogar",
     rules: "Como jogar?",
     language: "Idioma",
-    menuHelp: "Setas para navegar | Enter para selecionar",
     rulesTitle: "Como jogar?",
     rulesText: [
       "Move o jogador com WASD ou as setas.",
@@ -34,7 +33,6 @@ const LANGUAGES = {
     play: "Play",
     rules: "How to play?",
     language: "Language",
-    menuHelp: "Arrows to navigate | Enter to select",
     rulesTitle: "How to play?",
     rulesText: [
       "Move the player with WASD or arrow keys.",
@@ -145,11 +143,6 @@ function setupMenu(scene) {
     color: "#ffffff"
   }).setOrigin(0.5);
 
-  scene.helpText = scene.add.text(scene.scale.width / 2, 500, getText("menuHelp"), {
-    fontSize: "18px",
-    color: "#c9d1d9"
-  }).setOrigin(0.5);
-
   createMenuOptions(scene);
   setupMenuInput(scene);
   updateMenuSelection(scene);
@@ -216,7 +209,6 @@ function selectMenuOption(scene) {
   }
 
   toggleLanguage();
-  scene.helpText.setText(getText("menuHelp"));
   updateMenuSelection(scene);
 }
 
