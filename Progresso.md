@@ -14,7 +14,7 @@
 ## Scoreboard
 - Pontuação que avança de 10 em 10
 - Vidas
-- Balas e respetivo reload (a implementar)
+- Balas e respetivo reload
 
 ## Inimigos
 - Target player
