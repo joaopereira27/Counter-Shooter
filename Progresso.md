@@ -22,6 +22,6 @@
 - Contornar obstáculos (a implementar)
 
 ## Mapa
-- Dois mapas (Poolday CS 1.6)
+- Dois mapas (Poolday CS 1.6 e Mapa2)
 - Obstáculos (a implementar)
 
