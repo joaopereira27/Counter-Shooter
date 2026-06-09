@@ -19,6 +19,9 @@ const config = {
 const PLAYER_SPEED = 220;
 const BULLET_SPEED = 420;
 const FIRE_RATE = 250;
+const ENEMY_SPEED = 90;
+const ENEMY_SPAWN_RATE = 1200;
+const MAX_ENEMIES = 20;
 
 const game = new Phaser.Game(config);
 
@@ -28,12 +31,20 @@ function preload() {
 function create() {
   createPlayerTexture(this);
   createBulletTexture(this);
+  createEnemyTexture(this);
 
   this.player = this.physics.add.sprite(400, 300, "player");
   this.player.setCollideWorldBounds(true);
 
   this.bullets = this.physics.add.group();
+  this.enemies = this.physics.add.group();
   this.nextShotTime = 0;
+
+  this.time.addEvent({
+    delay: ENEMY_SPAWN_RATE,
+    callback: () => spawnEnemy(this),
+    loop: true
+  });
 
   this.cursors = this.input.keyboard.createCursorKeys();
   this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -61,6 +72,7 @@ function update() {
     shootBullet(this, targetX, targetY);
   }
 
+  moveEnemiesTowardsPlayer(this);
   removeOffscreenBullets(this);
 }
 
@@ -128,6 +140,71 @@ function removeOffscreenBullets(scene) {
   });
 }
 
+function spawnEnemy(scene) {
+  if (scene.enemies.countActive(true) >= MAX_ENEMIES) {
+    return;
+  }
+
+  const spawnPoint = getEnemySpawnPoint(scene);
+  const enemy = scene.enemies.create(spawnPoint.x, spawnPoint.y, "enemy");
+
+  enemy.setCircle(14, 2, 2);
+  enemy.setCollideWorldBounds(false);
+  enemy.setBounce(0);
+  enemy.setDrag(0);
+  enemy.setMaxVelocity(ENEMY_SPEED);
+}
+
+function getEnemySpawnPoint(scene) {
+  const margin = 24;
+  const side = Phaser.Math.Between(0, 3);
+  const width = scene.scale.width;
+  const height = scene.scale.height;
+
+  if (side === 0) {
+    return {
+      x: Phaser.Math.Between(0, width),
+      y: -margin
+    };
+  }
+
+  if (side === 1) {
+    return {
+      x: width + margin,
+      y: Phaser.Math.Between(0, height)
+    };
+  }
+
+  if (side === 2) {
+    return {
+      x: Phaser.Math.Between(0, width),
+      y: height + margin
+    };
+  }
+
+  return {
+    x: -margin,
+    y: Phaser.Math.Between(0, height)
+  };
+}
+
+function moveEnemiesTowardsPlayer(scene) {
+  scene.enemies.children.each((enemy) => {
+    const direction = new Phaser.Math.Vector2(
+      scene.player.x - enemy.x,
+      scene.player.y - enemy.y
+    );
+
+    if (direction.lengthSq() < 1) {
+      direction.set(Phaser.Math.FloatBetween(-1, 1), Phaser.Math.FloatBetween(-1, 1));
+    }
+
+    direction.normalize();
+    enemy.setVelocity(direction.x * ENEMY_SPEED, direction.y * ENEMY_SPEED);
+    enemy.setRotation(direction.angle() + Math.PI / 2);
+  });
+}
+
 function createPlayerTexture(scene) {
   const graphics = scene.add.graphics();
 
@@ -145,5 +222,16 @@ function createBulletTexture(scene) {
   graphics.fillStyle(0xf2cc60, 1);
   graphics.fillCircle(6, 6, 6);
   graphics.generateTexture("bullet", 12, 12);
+  graphics.destroy();
+}
+
+function createEnemyTexture(scene) {
+  const graphics = scene.add.graphics();
+
+  graphics.fillStyle(0xd73a49, 1);
+  graphics.fillCircle(16, 16, 16);
+  graphics.lineStyle(3, 0xffffff, 1);
+  graphics.strokeCircle(16, 16, 14);
+  graphics.generateTexture("enemy", 32, 32);
   graphics.destroy();
 }
