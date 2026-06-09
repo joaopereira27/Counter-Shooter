@@ -32,7 +32,6 @@ O jogo corre diretamente no browser e utiliza mecânicas básicas de movimento, 
 - JavaScript ES6+
 - Phaser 3
 - CSS, se aplicável
-- Browser moderno: Google Chrome, Firefox ou Microsoft Edge
 
 ---
 
