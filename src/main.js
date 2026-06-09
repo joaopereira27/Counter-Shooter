@@ -35,14 +35,20 @@ function preload() {
 
 function create() {
   createTextures(this);
+  setupGameState(this);
   setupPlayer(this);
   setupShooting(this);
   setupEnemies(this);
   setupHud(this);
   setupCollisions(this);
+  setupGameOverInput(this);
 }
 
 function update() {
+  if (this.isGameOver) {
+    return;
+  }
+
   handlePlayerMovement(this);
   handleShooting(this);
   moveEnemiesTowardsPlayer(this);
@@ -141,7 +147,7 @@ function setupShooting(scene) {
 }
 
 function handleShooting(scene) {
-  if (!scene.spaceKey.isDown) {
+  if (scene.isGameOver || !scene.spaceKey.isDown) {
     return;
   }
 
@@ -153,6 +159,10 @@ function handleShooting(scene) {
 }
 
 function shootBullet(scene, targetX, targetY) {
+  if (scene.isGameOver) {
+    return;
+  }
+
   if (scene.time.now < scene.nextShotTime) {
     return;
   }
@@ -192,7 +202,7 @@ function removeOffscreenBullets(scene) {
 function setupEnemies(scene) {
   scene.enemies = scene.physics.add.group();
 
-  scene.time.addEvent({
+  scene.enemySpawnTimer = scene.time.addEvent({
     delay: ENEMY_SPAWN_RATE,
     callback: () => spawnEnemy(scene),
     loop: true
@@ -200,6 +210,10 @@ function setupEnemies(scene) {
 }
 
 function spawnEnemy(scene) {
+  if (scene.isGameOver) {
+    return;
+  }
+
   if (scene.enemies.countActive(true) >= MAX_ENEMIES) {
     return;
   }
@@ -265,10 +279,13 @@ function moveEnemiesTowardsPlayer(scene) {
 }
 
 // Pontuacao, vidas e HUD
-function setupHud(scene) {
+function setupGameState(scene) {
   scene.score = 0;
   scene.lives = STARTING_LIVES;
+  scene.isGameOver = false;
+}
 
+function setupHud(scene) {
   scene.hudText = scene.add.text(16, 16, "", {
     fontSize: "18px",
     color: "#ffffff"
@@ -293,6 +310,10 @@ function setupCollisions(scene) {
 }
 
 function onBulletHitsEnemy(bullet, enemy) {
+  if (this.isGameOver) {
+    return;
+  }
+
   bullet.destroy();
   enemy.destroy();
 
@@ -301,8 +322,54 @@ function onBulletHitsEnemy(bullet, enemy) {
 }
 
 function onEnemyHitsPlayer(player, enemy) {
+  if (this.isGameOver) {
+    return;
+  }
+
   enemy.destroy();
 
   this.lives -= 1;
   updateHud(this);
+
+  if (this.lives <= 0) {
+    showGameOver(this);
+  }
+}
+
+// Game Over e reinicio
+function setupGameOverInput(scene) {
+  scene.restartKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+
+  scene.restartKey.on("down", () => {
+    if (scene.isGameOver) {
+      scene.scene.restart();
+    }
+  });
+}
+
+function showGameOver(scene) {
+  scene.isGameOver = true;
+  scene.lives = 0;
+  updateHud(scene);
+
+  scene.player.setVelocity(0, 0);
+  destroyGroupObjects(scene.bullets);
+  destroyGroupObjects(scene.enemies);
+  scene.enemySpawnTimer.paused = true;
+
+  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 - 30, "Game Over", {
+    fontSize: "48px",
+    color: "#ffffff"
+  }).setOrigin(0.5);
+
+  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 30, "Pressiona R para reiniciar", {
+    fontSize: "22px",
+    color: "#c9d1d9"
+  }).setOrigin(0.5);
+}
+
+function destroyGroupObjects(group) {
+  group.getChildren().forEach((gameObject) => {
+    gameObject.destroy();
+  });
 }
