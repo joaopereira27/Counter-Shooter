@@ -7,6 +7,8 @@ const ENEMY_SPAWN_RATE = 1200;
 const MAX_ENEMIES = 20;
 const ENEMY_SCORE = 10;
 const STARTING_LIVES = 3;
+const MAX_AMMO = 10;
+const RELOAD_TIME = 2500;
 
 // Idioma
 const LANGUAGES = {
@@ -24,6 +26,8 @@ const LANGUAGES = {
     back: "ESC para voltar ao menu",
     score: "Pontuacao",
     lives: "Vidas",
+    ammo: "Balas",
+    reloading: "A recarregar",
     controls: "Mover: WASD/setas | Disparar: SPACE/clique",
     gameOver: "Game Over",
     restart: "Pressiona R para reiniciar",
@@ -43,6 +47,8 @@ const LANGUAGES = {
     back: "ESC to return to menu",
     score: "Score",
     lives: "Lives",
+    ammo: "Ammo",
+    reloading: "Reloading",
     controls: "Move: WASD/arrows | Shoot: SPACE/click",
     gameOver: "Game Over",
     restart: "Press R to restart",
@@ -359,6 +365,10 @@ function shootBullet(scene, targetX, targetY) {
     return;
   }
 
+  if (scene.isReloading || scene.ammo <= 0) {
+    return;
+  }
+
   const direction = new Phaser.Math.Vector2(
     targetX - scene.player.x,
     targetY - scene.player.y
@@ -374,7 +384,33 @@ function shootBullet(scene, targetX, targetY) {
   bullet.setVelocity(direction.x * BULLET_SPEED, direction.y * BULLET_SPEED);
   bullet.setRotation(direction.angle() + Math.PI / 2);
 
+  scene.ammo -= 1;
   scene.nextShotTime = scene.time.now + FIRE_RATE;
+  updateHud(scene);
+
+  if (scene.ammo <= 0) {
+    startReload(scene);
+  }
+}
+
+function startReload(scene) {
+  if (scene.isGameOver || scene.isReloading) {
+    return;
+  }
+
+  scene.isReloading = true;
+  updateHud(scene);
+
+  scene.reloadTimer = scene.time.delayedCall(RELOAD_TIME, () => {
+    if (scene.isGameOver) {
+      return;
+    }
+
+    scene.ammo = MAX_AMMO;
+    scene.isReloading = false;
+    scene.reloadTimer = null;
+    updateHud(scene);
+  });
 }
 
 function removeOffscreenBullets(scene) {
@@ -474,6 +510,9 @@ function moveEnemiesTowardsPlayer(scene) {
 function setupGameState(scene) {
   scene.score = 0;
   scene.lives = STARTING_LIVES;
+  scene.ammo = MAX_AMMO;
+  scene.isReloading = false;
+  scene.reloadTimer = null;
   scene.isGameOver = false;
 }
 
@@ -492,7 +531,11 @@ function setupHud(scene) {
 }
 
 function updateHud(scene) {
-  scene.hudText.setText(`${getText("score")}: ${scene.score} | ${getText("lives")}: ${scene.lives}`);
+  const ammoText = scene.isReloading
+    ? `${getText("ammo")}: ${scene.ammo}/${MAX_AMMO} (${getText("reloading")})`
+    : `${getText("ammo")}: ${scene.ammo}/${MAX_AMMO}`;
+
+  scene.hudText.setText(`${getText("score")}: ${scene.score} | ${getText("lives")}: ${scene.lives} | ${ammoText}`);
 }
 
 // Colisoes e overlaps
@@ -555,6 +598,11 @@ function showGameOver(scene) {
   destroyGroupObjects(scene.bullets);
   destroyGroupObjects(scene.enemies);
   scene.enemySpawnTimer.paused = true;
+
+  if (scene.reloadTimer) {
+    scene.reloadTimer.remove(false);
+    scene.reloadTimer = null;
+  }
 
   scene.add.text(scene.scale.width / 2, scene.scale.height / 2 - 30, getText("gameOver"), {
     fontSize: "48px",
