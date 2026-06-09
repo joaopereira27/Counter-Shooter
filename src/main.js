@@ -55,7 +55,11 @@ function create() {
     right: Phaser.Input.Keyboard.KeyCodes.D
   });
 
-  this.add.text(16, 16, "Mover: WASD/setas | Disparar: SPACE", {
+  this.input.on("pointerdown", (pointer) => {
+    shootBullet(this, pointer.worldX, pointer.worldY);
+  });
+
+  this.add.text(16, 16, "Mover: WASD/setas | Disparar: SPACE/clique", {
     fontSize: "18px",
     color: "#ffffff"
   });
