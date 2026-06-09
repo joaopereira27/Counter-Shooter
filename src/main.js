@@ -1,3 +1,4 @@
+// Configuracao do jogo
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -16,6 +17,7 @@ const config = {
   }
 };
 
+// Constantes do jogo
 const PLAYER_SPEED = 220;
 const BULLET_SPEED = 420;
 const FIRE_RATE = 250;
@@ -27,70 +29,76 @@ const STARTING_LIVES = 3;
 
 const game = new Phaser.Game(config);
 
+// Ciclo principal Phaser
 function preload() {
 }
 
 function create() {
-  createPlayerTexture(this);
-  createBulletTexture(this);
-  createEnemyTexture(this);
+  createTextures(this);
+  setupPlayer(this);
+  setupShooting(this);
+  setupEnemies(this);
+  setupHud(this);
+  setupCollisions(this);
+}
 
-  this.player = this.physics.add.sprite(400, 300, "player");
-  this.player.setCollideWorldBounds(true);
+function update() {
+  handlePlayerMovement(this);
+  handleShooting(this);
+  moveEnemiesTowardsPlayer(this);
+  removeOffscreenBullets(this);
+}
 
-  this.bullets = this.physics.add.group();
-  this.enemies = this.physics.add.group();
-  this.nextShotTime = 0;
-  this.score = 0;
-  this.lives = STARTING_LIVES;
+// Texturas
+function createTextures(scene) {
+  createPlayerTexture(scene);
+  createBulletTexture(scene);
+  createEnemyTexture(scene);
+}
 
-  this.time.addEvent({
-    delay: ENEMY_SPAWN_RATE,
-    callback: () => spawnEnemy(this),
-    loop: true
-  });
+function createPlayerTexture(scene) {
+  const graphics = scene.add.graphics();
 
-  this.physics.add.overlap(this.bullets, this.enemies, onBulletHitsEnemy, null, this);
-  this.physics.add.overlap(this.player, this.enemies, onEnemyHitsPlayer, null, this);
+  graphics.fillStyle(0x3fb950, 1);
+  graphics.fillTriangle(16, 0, 32, 32, 0, 32);
+  graphics.lineStyle(3, 0xffffff, 1);
+  graphics.strokeTriangle(16, 0, 32, 32, 0, 32);
+  graphics.generateTexture("player", 32, 32);
+  graphics.destroy();
+}
 
-  this.cursors = this.input.keyboard.createCursorKeys();
-  this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-  this.wasd = this.input.keyboard.addKeys({
+function createBulletTexture(scene) {
+  const graphics = scene.add.graphics();
+
+  graphics.fillStyle(0xf2cc60, 1);
+  graphics.fillCircle(6, 6, 6);
+  graphics.generateTexture("bullet", 12, 12);
+  graphics.destroy();
+}
+
+function createEnemyTexture(scene) {
+  const graphics = scene.add.graphics();
+
+  graphics.fillStyle(0xd73a49, 1);
+  graphics.fillCircle(16, 16, 16);
+  graphics.lineStyle(3, 0xffffff, 1);
+  graphics.strokeCircle(16, 16, 14);
+  graphics.generateTexture("enemy", 32, 32);
+  graphics.destroy();
+}
+
+// Jogador e movimento
+function setupPlayer(scene) {
+  scene.player = scene.physics.add.sprite(400, 300, "player");
+  scene.player.setCollideWorldBounds(true);
+
+  scene.cursors = scene.input.keyboard.createCursorKeys();
+  scene.wasd = scene.input.keyboard.addKeys({
     up: Phaser.Input.Keyboard.KeyCodes.W,
     left: Phaser.Input.Keyboard.KeyCodes.A,
     down: Phaser.Input.Keyboard.KeyCodes.S,
     right: Phaser.Input.Keyboard.KeyCodes.D
   });
-
-  this.input.on("pointerdown", (pointer) => {
-    shootBullet(this, pointer.worldX, pointer.worldY);
-  });
-
-  this.hudText = this.add.text(16, 16, "", {
-    fontSize: "18px",
-    color: "#ffffff"
-  });
-  updateHud(this);
-
-  this.add.text(16, 44, "Mover: WASD/setas | Disparar: SPACE/clique", {
-    fontSize: "16px",
-    color: "#c9d1d9"
-  });
-}
-
-function update() {
-  handlePlayerMovement(this);
-
-  if (this.spaceKey.isDown) {
-    const angle = this.player.rotation - Math.PI / 2;
-    const targetX = this.player.x + Math.cos(angle) * 100;
-    const targetY = this.player.y + Math.sin(angle) * 100;
-
-    shootBullet(this, targetX, targetY);
-  }
-
-  moveEnemiesTowardsPlayer(this);
-  removeOffscreenBullets(this);
 }
 
 function handlePlayerMovement(scene) {
@@ -119,6 +127,29 @@ function handlePlayerMovement(scene) {
   if (velocity.lengthSq() > 0) {
     scene.player.setRotation(velocity.angle() + Math.PI / 2);
   }
+}
+
+// Disparos
+function setupShooting(scene) {
+  scene.bullets = scene.physics.add.group();
+  scene.nextShotTime = 0;
+  scene.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+  scene.input.on("pointerdown", (pointer) => {
+    shootBullet(scene, pointer.worldX, pointer.worldY);
+  });
+}
+
+function handleShooting(scene) {
+  if (!scene.spaceKey.isDown) {
+    return;
+  }
+
+  const angle = scene.player.rotation - Math.PI / 2;
+  const targetX = scene.player.x + Math.cos(angle) * 100;
+  const targetY = scene.player.y + Math.sin(angle) * 100;
+
+  shootBullet(scene, targetX, targetY);
 }
 
 function shootBullet(scene, targetX, targetY) {
@@ -157,23 +188,15 @@ function removeOffscreenBullets(scene) {
   });
 }
 
-function onBulletHitsEnemy(bullet, enemy) {
-  bullet.destroy();
-  enemy.destroy();
+// Inimigos
+function setupEnemies(scene) {
+  scene.enemies = scene.physics.add.group();
 
-  this.score += ENEMY_SCORE;
-  updateHud(this);
-}
-
-function onEnemyHitsPlayer(player, enemy) {
-  enemy.destroy();
-
-  this.lives -= 1;
-  updateHud(this);
-}
-
-function updateHud(scene) {
-  scene.hudText.setText(`Pontuacao: ${scene.score} | Vidas: ${scene.lives}`);
+  scene.time.addEvent({
+    delay: ENEMY_SPAWN_RATE,
+    callback: () => spawnEnemy(scene),
+    loop: true
+  });
 }
 
 function spawnEnemy(scene) {
@@ -241,33 +264,45 @@ function moveEnemiesTowardsPlayer(scene) {
   });
 }
 
-function createPlayerTexture(scene) {
-  const graphics = scene.add.graphics();
+// Pontuacao, vidas e HUD
+function setupHud(scene) {
+  scene.score = 0;
+  scene.lives = STARTING_LIVES;
 
-  graphics.fillStyle(0x3fb950, 1);
-  graphics.fillTriangle(16, 0, 32, 32, 0, 32);
-  graphics.lineStyle(3, 0xffffff, 1);
-  graphics.strokeTriangle(16, 0, 32, 32, 0, 32);
-  graphics.generateTexture("player", 32, 32);
-  graphics.destroy();
+  scene.hudText = scene.add.text(16, 16, "", {
+    fontSize: "18px",
+    color: "#ffffff"
+  });
+
+  scene.add.text(16, 44, "Mover: WASD/setas | Disparar: SPACE/clique", {
+    fontSize: "16px",
+    color: "#c9d1d9"
+  });
+
+  updateHud(scene);
 }
 
-function createBulletTexture(scene) {
-  const graphics = scene.add.graphics();
-
-  graphics.fillStyle(0xf2cc60, 1);
-  graphics.fillCircle(6, 6, 6);
-  graphics.generateTexture("bullet", 12, 12);
-  graphics.destroy();
+function updateHud(scene) {
+  scene.hudText.setText(`Pontuacao: ${scene.score} | Vidas: ${scene.lives}`);
 }
 
-function createEnemyTexture(scene) {
-  const graphics = scene.add.graphics();
+// Colisoes e overlaps
+function setupCollisions(scene) {
+  scene.physics.add.overlap(scene.bullets, scene.enemies, onBulletHitsEnemy, null, scene);
+  scene.physics.add.overlap(scene.player, scene.enemies, onEnemyHitsPlayer, null, scene);
+}
 
-  graphics.fillStyle(0xd73a49, 1);
-  graphics.fillCircle(16, 16, 16);
-  graphics.lineStyle(3, 0xffffff, 1);
-  graphics.strokeCircle(16, 16, 14);
-  graphics.generateTexture("enemy", 32, 32);
-  graphics.destroy();
+function onBulletHitsEnemy(bullet, enemy) {
+  bullet.destroy();
+  enemy.destroy();
+
+  this.score += ENEMY_SCORE;
+  updateHud(this);
+}
+
+function onEnemyHitsPlayer(player, enemy) {
+  enemy.destroy();
+
+  this.lives -= 1;
+  updateHud(this);
 }
