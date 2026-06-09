@@ -26,6 +26,16 @@ O jogo corre diretamente no browser e utiliza mecânicas básicas de movimento, 
 
 ---
 
+## Regras do jogo
+
+- O jogador começa com um número limitado de vidas.
+- Os inimigos aparecem no cenário e deslocam-se na direção do jogador.
+- O jogador pode disparar projéteis para eliminar os inimigos.
+- Cada inimigo eliminado aumenta a pontuação.
+- Se um inimigo tocar no jogador, o jogador perde vida.
+- Quando as vidas chegam a zero, o jogo termina.
+- Após o Game Over, o jogador pode reiniciar a partida.
+
 ## Tecnologias utilizadas
 
 - HTML5
