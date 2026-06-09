@@ -1,38 +1,41 @@
 # Counter-Shooter
 
+Trabalho Prático 2 — Phaser 3  
+Unidade Curricular: Tecnologias Multimédia 2025/2026
+
 ## Elementos do grupo
 
-- Ruben Lima - 29314 - limaruben@ipvc.pt
-- João Pereira - 29430 - o.pereira@ipvc.pt
+- Ruben Lima — Nº 29314 — limaruben@ipvc.pt
+- João Pereira — Nº 29430 — o.pereira@ipvc.pt
 
-## Tema
+## Professores
 
-Counter-Shooter
+- Paula Rego
+- Alexandre Silva
+- Luís Miguel Silva
+
+## Tema do projeto
+
+**Counter-Shooter**
 
 ## Resumo
 
-Shooter top-down simples desenvolvido em Phaser 3.
+**Counter-Shooter** é um jogo 2D do género **top-down shooter**, desenvolvido em **Phaser 3**, onde o jogador controla uma personagem armada e deve eliminar inimigos, sobreviver o máximo tempo possível e acumular pontuação.
 
-## Versão de Phaser
+O jogo corre diretamente no browser e utiliza mecânicas básicas de movimento, disparo, colisões, pontuação, vidas, Game Over e reinício.
 
-Phaser 3.80.1 incluído por CDN.
+---
 
-## Como executar
+## Tecnologias utilizadas
 
-Abrir o projeto no VS Code e correr o ficheiro `index.html` com a extensão Live Server.
+- HTML5
+- JavaScript ES6+
+- Phaser 3
+- CSS, se aplicável
+- Browser moderno: Google Chrome, Firefox ou Microsoft Edge
 
-## Controlos
+---
 
-Ainda por definir.
+## Versão do Phaser
 
-## Funcionalidades previstas
-
-- Jogador controlável
-- Inimigos
-- Sistema de pontuação
-- Sistema de vidas
-- Game Over
-- Vitória
-- Reinício
-- Som
-- Suporte a Português e Inglês
+O projeto utiliza **Phaser 3**, incluído através de **CDN** no ficheiro `index.html`.
