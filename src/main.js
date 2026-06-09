@@ -86,54 +86,7 @@ const MAPS = {
 };
 
 // Idioma
-const LANGUAGES = {
-  pt: {
-    play: "Jogar",
-    rules: "Como jogar?",
-    selectMap: "Selecionar mapa",
-    map2: "Mapa 2",
-    language: "Idioma",
-    rulesTitle: "Como jogar?",
-    rulesText: [
-      "Move o jogador com WASD ou as setas.",
-      "Dispara com SPACE ou clique do rato.",
-      "Elimina inimigos para ganhar pontos.",
-      "Se um inimigo tocar no jogador, perdes uma vida."
-    ],
-    back: "ESC para voltar ao menu",
-    score: "Pontuacao",
-    lives: "Vidas",
-    ammo: "Balas",
-    reloading: "A recarregar",
-    controls: "Mover: WASD/setas | Disparar: SPACE/clique",
-    gameOver: "Game Over",
-    restart: "Pressiona R para reiniciar",
-    gameOverMenu: "ESC para voltar ao menu"
-  },
-  en: {
-    play: "Play",
-    rules: "How to play?",
-    selectMap: "Select map",
-    map2: "Map 2",
-    language: "Language",
-    rulesTitle: "How to play?",
-    rulesText: [
-      "Move the player with WASD or arrow keys.",
-      "Shoot with SPACE or mouse click.",
-      "Destroy enemies to earn points.",
-      "If an enemy touches the player, you lose one life."
-    ],
-    back: "ESC to return to menu",
-    score: "Score",
-    lives: "Lives",
-    ammo: "Ammo",
-    reloading: "Reloading",
-    controls: "Move: WASD/arrows | Shoot: SPACE/click",
-    gameOver: "Game Over",
-    restart: "Press R to restart",
-    gameOverMenu: "ESC to return to menu"
-  }
-};
+let LANGUAGES = {};
 
 const gameState = {
   language: "pt",
@@ -141,11 +94,25 @@ const gameState = {
 };
 
 function getText(key) {
-  return LANGUAGES[gameState.language][key];
+  const languageTexts = LANGUAGES[gameState.language] || LANGUAGES.pt || {};
+
+  return languageTexts[key] || key;
 }
 
 function toggleLanguage() {
   gameState.language = gameState.language === "pt" ? "en" : "pt";
+}
+
+function preloadLanguageAssets(scene) {
+  scene.load.json("languages", "assets/data/languages.json");
+}
+
+function setupLanguages(scene) {
+  const loadedLanguages = scene.cache.json.get("languages");
+
+  if (loadedLanguages) {
+    LANGUAGES = loadedLanguages;
+  }
 }
 
 // Cena do menu
@@ -154,7 +121,12 @@ class MenuScene extends Phaser.Scene {
     super("MenuScene");
   }
 
+  preload() {
+    preloadLanguageAssets(this);
+  }
+
   create() {
+    setupLanguages(this);
     setupMenu(this);
   }
 }
@@ -166,6 +138,7 @@ class RulesScene extends Phaser.Scene {
   }
 
   create() {
+    setupLanguages(this);
     setupRules(this);
   }
 }
@@ -177,6 +150,7 @@ class MapSelectScene extends Phaser.Scene {
   }
 
   create() {
+    setupLanguages(this);
     setupMapSelect(this);
   }
 }
@@ -192,6 +166,7 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
+    setupLanguages(this);
     createTextures(this);
     setupGameState(this);
     setupMap(this);

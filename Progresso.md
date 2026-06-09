@@ -5,11 +5,11 @@
 - Colisões e interações
 
 ## Menu
-- Botão jogar
+- Botão jogar e depois selecionar mapa
 - Como jogar
 - Botão língua PT/EN
 - Respetivos comandos para movimento no menu
-- Diferente implementação de cenas (Menu, Como jogar? e Jogo)
+- Diferente implementação de cenas (Menu, Como jogar?, Jogo, Seleção de mapa)
 
 ## Scoreboard
 - Pontuação que avança de 10 em 10
@@ -22,6 +22,6 @@
 - Contornar obstáculos (a implementar)
 
 ## Mapa
-- Dois mapas (a implementar)
+- Dois mapas (Poolday CS 1.6)
 - Obstáculos (a implementar)
 
