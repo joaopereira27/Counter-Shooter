@@ -9,12 +9,89 @@ const ENEMY_SCORE = 10;
 const STARTING_LIVES = 3;
 const MAX_AMMO = 10;
 const RELOAD_TIME = 2500;
+const POOL_SPEED_MULTIPLIER = 0.45;
+const SLOW_ZONE_MULTIPLIER = 0.65;
+const MAPS = {
+  poolday: {
+    name: "Pool Day",
+    imageKey: "poolday",
+    imagePath: "assets/maps/poolday.png",
+    playerSpawn: { x: 400, y: 470 },
+    enemySpawns: [
+      { x: 100, y: 92 },
+      { x: 700, y: 92 },
+      { x: 90, y: 515 },
+      { x: 710, y: 515 }
+    ],
+    waterZones: [
+      { x: 316, y: 40, width: 58, height: 62 },
+      { x: 330, y: 230, width: 118, height: 202 }
+    ],
+    normalZones: [
+      { x: 389, y: 394, width: 12, height: 58 }
+    ],
+    slowZones: [
+      { x: 396, y: 68, width: 42, height: 112 },
+      { x: 398, y: 146, width: 18, height: 30 },
+      { x: 480, y: 308, width: 42, height: 18 }
+    ],
+    obstacles: [
+      { x: 64, y: 84, width: 20, height: 504 },
+      { x: 716, y: 84, width: 20, height: 504 },
+      { x: 84, y: 66, width: 104, height: 12 },
+      { x: 84, y: 84, width: 14, height: 26 },
+      { x: 267, y: 17, width: 158, height: 18 },
+      { x: 267, y: 17, width: 18, height: 109 },
+      { x: 407, y: 17, width: 18, height: 51 },
+      { x: 425, y: 60, width: 110, height: 14 },
+      { x: 535, y: 70, width: 73, height: 16 },
+      { x: 608, y: 66, width: 20, height: 64 },
+      { x: 628, y: 66, width: 88, height: 12 },
+      { x: 188, y: 66, width: 20, height: 64 },
+      { x: 84, y: 77, width: 12, height: 32 },
+      { x: 700, y: 77, width: 16, height: 32 },
+      { x: 68, y: 584, width: 664, height: 14 },
+      { x: 140, y: 492, width: 146, height: 18 },
+      { x: 514, y: 492, width: 146, height: 18 },
+      { x: 264, y: 440, width: 24, height: 98 },
+      { x: 512, y: 440, width: 24, height: 98 },
+      { x: 360, y: 502, width: 66, height: 38 },
+      { x: 286, y: 126, width: 54, height: 20 },
+      { x: 438, y: 126, width: 105, height: 20 },
+      { x: 160, y: 205, width: 20, height: 188 },
+      { x: 256, y: 205, width: 22, height: 187 },
+      { x: 160, y: 255, width: 118, height: 80 },
+      { x: 522, y: 205, width: 22, height: 187 },
+      { x: 622, y: 205, width: 20, height: 188 },
+      { x: 522, y: 255, width: 120, height: 80 },
+      { x: 142, y: 234, width: 16, height: 126 },
+      { x: 706, y: 282, width: 18, height: 90 },
+      { x: 638, y: 224, width: 18, height: 16 },
+      { x: 638, y: 248, width: 18, height: 16 },
+      { x: 638, y: 272, width: 18, height: 16 },
+      { x: 98, y: 70, width: 14, height: 18 },
+      { x: 126, y: 70, width: 14, height: 18 },
+      { x: 154, y: 70, width: 14, height: 18 }
+    ]
+  },
+  map2: {
+    name: "Mapa 2",
+    playerSpawn: { x: 400, y: 300 },
+    enemySpawns: null,
+    waterZones: [],
+    normalZones: [],
+    slowZones: [],
+    obstacles: []
+  }
+};
 
 // Idioma
 const LANGUAGES = {
   pt: {
     play: "Jogar",
     rules: "Como jogar?",
+    selectMap: "Selecionar mapa",
+    map2: "Mapa 2",
     language: "Idioma",
     rulesTitle: "Como jogar?",
     rulesText: [
@@ -36,6 +113,8 @@ const LANGUAGES = {
   en: {
     play: "Play",
     rules: "How to play?",
+    selectMap: "Select map",
+    map2: "Map 2",
     language: "Language",
     rulesTitle: "How to play?",
     rulesText: [
@@ -57,7 +136,8 @@ const LANGUAGES = {
 };
 
 const gameState = {
-  language: "pt"
+  language: "pt",
+  selectedMap: "map2"
 };
 
 function getText(key) {
@@ -90,6 +170,17 @@ class RulesScene extends Phaser.Scene {
   }
 }
 
+// Cena de selecao de mapa
+class MapSelectScene extends Phaser.Scene {
+  constructor() {
+    super("MapSelectScene");
+  }
+
+  create() {
+    setupMapSelect(this);
+  }
+}
+
 // Cena do jogo
 class GameScene extends Phaser.Scene {
   constructor() {
@@ -97,11 +188,13 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
+    preloadGameAssets(this);
   }
 
   create() {
     createTextures(this);
     setupGameState(this);
+    setupMap(this);
     setupPlayer(this);
     setupShooting(this);
     setupEnemies(this);
@@ -134,7 +227,7 @@ const config = {
       debug: false
     }
   },
-  scene: [MenuScene, RulesScene, GameScene]
+  scene: [MenuScene, RulesScene, MapSelectScene, GameScene]
 };
 
 const game = new Phaser.Game(config);
@@ -164,7 +257,17 @@ function createMenuOptions(scene) {
     const menuText = scene.add.text(scene.scale.width / 2, 240 + index * 58, option, {
       fontSize: "28px",
       color: "#ffffff"
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    menuText.on("pointerover", () => {
+      scene.selectedOption = index;
+      updateMenuSelection(scene);
+    });
+
+    menuText.on("pointerdown", () => {
+      scene.selectedOption = index;
+      selectMenuOption(scene);
+    });
 
     scene.menuTexts.push(menuText);
   });
@@ -205,7 +308,7 @@ function updateMenuSelection(scene) {
 
 function selectMenuOption(scene) {
   if (scene.selectedOption === 0) {
-    scene.scene.start("GameScene");
+    scene.scene.start("MapSelectScene");
     return;
   }
 
@@ -216,6 +319,74 @@ function selectMenuOption(scene) {
 
   toggleLanguage();
   updateMenuSelection(scene);
+}
+
+function setupMapSelect(scene) {
+  scene.selectedOption = 0;
+  scene.mapOptions = ["poolday", "map2"];
+  scene.mapTexts = [];
+
+  scene.add.text(scene.scale.width / 2, 100, getText("selectMap"), {
+    fontSize: "42px",
+    color: "#ffffff"
+  }).setOrigin(0.5);
+
+  scene.mapOptions.forEach((mapKey, index) => {
+    const mapText = scene.add.text(scene.scale.width / 2, 220 + index * 58, MAPS[mapKey].name, {
+      fontSize: "30px",
+      color: "#ffffff"
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    mapText.on("pointerover", () => {
+      scene.selectedOption = index;
+      updateMapSelection(scene);
+    });
+
+    mapText.on("pointerdown", () => {
+      gameState.selectedMap = scene.mapOptions[index];
+      scene.scene.start("GameScene");
+    });
+
+    scene.mapTexts.push(mapText);
+  });
+
+  scene.add.text(scene.scale.width / 2, 520, getText("back"), {
+    fontSize: "20px",
+    color: "#f2cc60"
+  }).setOrigin(0.5);
+
+  setupMapSelectInput(scene);
+  updateMapSelection(scene);
+}
+
+function setupMapSelectInput(scene) {
+  scene.input.keyboard.on("keydown-UP", () => {
+    scene.selectedOption = Phaser.Math.Wrap(scene.selectedOption - 1, 0, scene.mapTexts.length);
+    updateMapSelection(scene);
+  });
+
+  scene.input.keyboard.on("keydown-DOWN", () => {
+    scene.selectedOption = Phaser.Math.Wrap(scene.selectedOption + 1, 0, scene.mapTexts.length);
+    updateMapSelection(scene);
+  });
+
+  scene.input.keyboard.on("keydown-ENTER", () => {
+    gameState.selectedMap = scene.mapOptions[scene.selectedOption];
+    scene.scene.start("GameScene");
+  });
+
+  scene.input.keyboard.on("keydown-ESC", () => {
+    scene.scene.start("MenuScene");
+  });
+}
+
+function updateMapSelection(scene) {
+  scene.mapTexts.forEach((text, index) => {
+    const isSelected = index === scene.selectedOption;
+
+    text.setText(`${isSelected ? "> " : "  "}${MAPS[scene.mapOptions[index]].name}`);
+    text.setColor(isSelected ? "#f2cc60" : "#ffffff");
+  });
 }
 
 function setupRules(scene) {
@@ -242,6 +413,14 @@ function setupRules(scene) {
 }
 
 // Texturas
+function preloadGameAssets(scene) {
+  Object.values(MAPS).forEach((map) => {
+    if (map.imageKey && !scene.textures.exists(map.imageKey)) {
+      scene.load.image(map.imageKey, map.imagePath);
+    }
+  });
+}
+
 function createTextures(scene) {
   createPlayerTexture(scene);
   createBulletTexture(scene);
@@ -291,9 +470,100 @@ function createEnemyTexture(scene) {
   graphics.destroy();
 }
 
+// Mapas
+function setupMap(scene) {
+  scene.currentMap = MAPS[gameState.selectedMap] || MAPS.map2;
+  scene.mapObstacles = scene.physics.add.staticGroup();
+
+  if (scene.currentMap.imageKey) {
+    scene.add.image(scene.scale.width / 2, scene.scale.height / 2, scene.currentMap.imageKey)
+      .setDisplaySize(scene.scale.width, scene.scale.height)
+      .setDepth(-10);
+  }
+
+  if (scene.currentMap === MAPS.map2) {
+    scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x222222)
+      .setOrigin(0)
+      .setDepth(-20);
+  }
+
+  scene.currentMap.obstacles.forEach((rect) => {
+    const obstacle = scene.add.rectangle(
+      rect.x + rect.width / 2,
+      rect.y + rect.height / 2,
+      rect.width,
+      rect.height,
+      0x000000,
+      0
+    );
+
+    scene.physics.add.existing(obstacle, true);
+    scene.mapObstacles.add(obstacle);
+  });
+}
+
+function isInRect(gameObject, rect) {
+  return (
+    gameObject.x >= rect.x &&
+    gameObject.x <= rect.x + rect.width &&
+    gameObject.y >= rect.y &&
+    gameObject.y <= rect.y + rect.height
+  );
+}
+
+function isInAnyRect(gameObject, rects) {
+  return rects.some((rect) => isInRect(gameObject, rect));
+}
+
+function isPointInRect(x, y, rect) {
+  return (
+    x >= rect.x &&
+    x <= rect.x + rect.width &&
+    y >= rect.y &&
+    y <= rect.y + rect.height
+  );
+}
+
+function isPointInAnyRect(x, y, rects) {
+  return rects.some((rect) => isPointInRect(x, y, rect));
+}
+
+function lineIntersectsRect(line, rect) {
+  const phaserRect = new Phaser.Geom.Rectangle(rect.x, rect.y, rect.width, rect.height);
+
+  return Phaser.Geom.Intersects.LineToRectangle(line, phaserRect);
+}
+
+function isPathBlocked(scene, startX, startY, endX, endY) {
+  if (!scene.currentMap || !scene.currentMap.obstacles.length) {
+    return false;
+  }
+
+  const line = new Phaser.Geom.Line(startX, startY, endX, endY);
+
+  return scene.currentMap.obstacles.some((rect) => lineIntersectsRect(line, rect));
+}
+
+function getTerrainSpeedMultiplier(scene, gameObject) {
+  if (!scene.currentMap || isInAnyRect(gameObject, scene.currentMap.normalZones)) {
+    return 1;
+  }
+
+  if (isInAnyRect(gameObject, scene.currentMap.slowZones)) {
+    return SLOW_ZONE_MULTIPLIER;
+  }
+
+  if (isInAnyRect(gameObject, scene.currentMap.waterZones)) {
+    return POOL_SPEED_MULTIPLIER;
+  }
+
+  return 1;
+}
+
 // Jogador e movimento
 function setupPlayer(scene) {
-  scene.player = scene.physics.add.sprite(400, 300, "player");
+  const spawn = scene.currentMap.playerSpawn;
+  scene.player = scene.physics.add.sprite(spawn.x, spawn.y, "player");
   scene.player.setCollideWorldBounds(true);
 
   scene.cursors = scene.input.keyboard.createCursorKeys();
@@ -325,7 +595,7 @@ function handlePlayerMovement(scene) {
     velocity.y = 1;
   }
 
-  velocity.normalize().scale(PLAYER_SPEED);
+  velocity.normalize().scale(PLAYER_SPEED * getTerrainSpeedMultiplier(scene, scene.player));
   scene.player.setVelocity(velocity.x, velocity.y);
 
   if (velocity.lengthSq() > 0) {
@@ -457,6 +727,10 @@ function spawnEnemy(scene) {
 }
 
 function getEnemySpawnPoint(scene) {
+  if (scene.currentMap.enemySpawns) {
+    return Phaser.Utils.Array.GetRandom(scene.currentMap.enemySpawns);
+  }
+
   const margin = 24;
   const side = Phaser.Math.Between(0, 3);
   const width = scene.scale.width;
@@ -491,19 +765,74 @@ function getEnemySpawnPoint(scene) {
 
 function moveEnemiesTowardsPlayer(scene) {
   scene.enemies.children.each((enemy) => {
-    const direction = new Phaser.Math.Vector2(
-      scene.player.x - enemy.x,
-      scene.player.y - enemy.y
+    const direction = getEnemyMoveDirection(scene, enemy);
+
+    enemy.setVelocity(
+      direction.x * ENEMY_SPEED * getTerrainSpeedMultiplier(scene, enemy),
+      direction.y * ENEMY_SPEED * getTerrainSpeedMultiplier(scene, enemy)
     );
-
-    if (direction.lengthSq() < 1) {
-      direction.set(Phaser.Math.FloatBetween(-1, 1), Phaser.Math.FloatBetween(-1, 1));
-    }
-
-    direction.normalize();
-    enemy.setVelocity(direction.x * ENEMY_SPEED, direction.y * ENEMY_SPEED);
     enemy.setRotation(direction.angle() + Math.PI / 2);
   });
+}
+
+function getEnemyMoveDirection(scene, enemy) {
+  const direction = new Phaser.Math.Vector2(
+    scene.player.x - enemy.x,
+    scene.player.y - enemy.y
+  );
+
+  if (direction.lengthSq() < 1) {
+    direction.set(Phaser.Math.FloatBetween(-1, 1), Phaser.Math.FloatBetween(-1, 1));
+  }
+
+  direction.normalize();
+
+  if (!isPathBlocked(scene, enemy.x, enemy.y, scene.player.x, scene.player.y)) {
+    return direction;
+  }
+
+  return getAlternativeEnemyDirection(scene, enemy, direction);
+}
+
+function getAlternativeEnemyDirection(scene, enemy, direction) {
+  const baseAngle = direction.angle();
+  const angleOffsets = [
+    Math.PI / 4,
+    -Math.PI / 4,
+    Math.PI / 2,
+    -Math.PI / 2,
+    (Math.PI * 3) / 4,
+    (-Math.PI * 3) / 4,
+    Math.PI
+  ];
+  const lookAhead = 42;
+  let bestDirection = direction;
+  let bestDistance = Number.MAX_VALUE;
+
+  angleOffsets.forEach((offset) => {
+    const candidate = new Phaser.Math.Vector2(
+      Math.cos(baseAngle + offset),
+      Math.sin(baseAngle + offset)
+    );
+    const nextX = enemy.x + candidate.x * lookAhead;
+    const nextY = enemy.y + candidate.y * lookAhead;
+
+    if (
+      isPointInAnyRect(nextX, nextY, scene.currentMap.obstacles) ||
+      isPathBlocked(scene, enemy.x, enemy.y, nextX, nextY)
+    ) {
+      return;
+    }
+
+    const distanceToPlayer = Phaser.Math.Distance.Between(nextX, nextY, scene.player.x, scene.player.y);
+
+    if (distanceToPlayer < bestDistance) {
+      bestDistance = distanceToPlayer;
+      bestDirection = candidate;
+    }
+  });
+
+  return bestDirection;
 }
 
 // Pontuacao, vidas e HUD
@@ -540,8 +869,15 @@ function updateHud(scene) {
 
 // Colisoes e overlaps
 function setupCollisions(scene) {
+  scene.physics.add.collider(scene.player, scene.mapObstacles);
+  scene.physics.add.collider(scene.enemies, scene.mapObstacles);
+  scene.physics.add.collider(scene.bullets, scene.mapObstacles, onBulletHitsObstacle, null, scene);
   scene.physics.add.overlap(scene.bullets, scene.enemies, onBulletHitsEnemy, null, scene);
   scene.physics.add.overlap(scene.player, scene.enemies, onEnemyHitsPlayer, null, scene);
+}
+
+function onBulletHitsObstacle(bullet) {
+  bullet.destroy();
 }
 
 function onBulletHitsEnemy(bullet, enemy) {
