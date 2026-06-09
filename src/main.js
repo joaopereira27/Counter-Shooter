@@ -22,6 +22,8 @@ const FIRE_RATE = 250;
 const ENEMY_SPEED = 90;
 const ENEMY_SPAWN_RATE = 1200;
 const MAX_ENEMIES = 20;
+const ENEMY_SCORE = 10;
+const STARTING_LIVES = 3;
 
 const game = new Phaser.Game(config);
 
@@ -39,12 +41,17 @@ function create() {
   this.bullets = this.physics.add.group();
   this.enemies = this.physics.add.group();
   this.nextShotTime = 0;
+  this.score = 0;
+  this.lives = STARTING_LIVES;
 
   this.time.addEvent({
     delay: ENEMY_SPAWN_RATE,
     callback: () => spawnEnemy(this),
     loop: true
   });
+
+  this.physics.add.overlap(this.bullets, this.enemies, onBulletHitsEnemy, null, this);
+  this.physics.add.overlap(this.player, this.enemies, onEnemyHitsPlayer, null, this);
 
   this.cursors = this.input.keyboard.createCursorKeys();
   this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -59,9 +66,15 @@ function create() {
     shootBullet(this, pointer.worldX, pointer.worldY);
   });
 
-  this.add.text(16, 16, "Mover: WASD/setas | Disparar: SPACE/clique", {
+  this.hudText = this.add.text(16, 16, "", {
     fontSize: "18px",
     color: "#ffffff"
+  });
+  updateHud(this);
+
+  this.add.text(16, 44, "Mover: WASD/setas | Disparar: SPACE/clique", {
+    fontSize: "16px",
+    color: "#c9d1d9"
   });
 }
 
@@ -142,6 +155,25 @@ function removeOffscreenBullets(scene) {
       bullet.destroy();
     }
   });
+}
+
+function onBulletHitsEnemy(bullet, enemy) {
+  bullet.destroy();
+  enemy.destroy();
+
+  this.score += ENEMY_SCORE;
+  updateHud(this);
+}
+
+function onEnemyHitsPlayer(player, enemy) {
+  enemy.destroy();
+
+  this.lives -= 1;
+  updateHud(this);
+}
+
+function updateHud(scene) {
+  scene.hudText.setText(`Pontuacao: ${scene.score} | Vidas: ${scene.lives}`);
 }
 
 function spawnEnemy(scene) {
