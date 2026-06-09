@@ -1,3 +1,123 @@
+// Constantes do jogo
+const PLAYER_SPEED = 220;
+const BULLET_SPEED = 420;
+const FIRE_RATE = 250;
+const ENEMY_SPEED = 90;
+const ENEMY_SPAWN_RATE = 1200;
+const MAX_ENEMIES = 20;
+const ENEMY_SCORE = 10;
+const STARTING_LIVES = 3;
+
+// Idioma
+const LANGUAGES = {
+  pt: {
+    play: "Jogar",
+    rules: "Como jogar?",
+    language: "Idioma",
+    menuHelp: "Setas para navegar | Enter para selecionar",
+    rulesTitle: "Como jogar?",
+    rulesText: [
+      "Move o jogador com WASD ou as setas.",
+      "Dispara com SPACE ou clique do rato.",
+      "Elimina inimigos para ganhar pontos.",
+      "Se um inimigo tocar no jogador, perdes uma vida."
+    ],
+    back: "ESC para voltar ao menu",
+    score: "Pontuacao",
+    lives: "Vidas",
+    controls: "Mover: WASD/setas | Disparar: SPACE/clique",
+    gameOver: "Game Over",
+    restart: "Pressiona R para reiniciar",
+    gameOverMenu: "ESC para voltar ao menu"
+  },
+  en: {
+    play: "Play",
+    rules: "How to play?",
+    language: "Language",
+    menuHelp: "Arrows to navigate | Enter to select",
+    rulesTitle: "How to play?",
+    rulesText: [
+      "Move the player with WASD or arrow keys.",
+      "Shoot with SPACE or mouse click.",
+      "Destroy enemies to earn points.",
+      "If an enemy touches the player, you lose one life."
+    ],
+    back: "ESC to return to menu",
+    score: "Score",
+    lives: "Lives",
+    controls: "Move: WASD/arrows | Shoot: SPACE/click",
+    gameOver: "Game Over",
+    restart: "Press R to restart",
+    gameOverMenu: "ESC to return to menu"
+  }
+};
+
+const gameState = {
+  language: "pt"
+};
+
+function getText(key) {
+  return LANGUAGES[gameState.language][key];
+}
+
+function toggleLanguage() {
+  gameState.language = gameState.language === "pt" ? "en" : "pt";
+}
+
+// Cena do menu
+class MenuScene extends Phaser.Scene {
+  constructor() {
+    super("MenuScene");
+  }
+
+  create() {
+    setupMenu(this);
+  }
+}
+
+// Cena de regras
+class RulesScene extends Phaser.Scene {
+  constructor() {
+    super("RulesScene");
+  }
+
+  create() {
+    setupRules(this);
+  }
+}
+
+// Cena do jogo
+class GameScene extends Phaser.Scene {
+  constructor() {
+    super("GameScene");
+  }
+
+  preload() {
+  }
+
+  create() {
+    createTextures(this);
+    setupGameState(this);
+    setupPlayer(this);
+    setupShooting(this);
+    setupEnemies(this);
+    setupHud(this);
+    setupCollisions(this);
+    setupGameOverInput(this);
+  }
+
+  update() {
+    if (this.isGameOver) {
+      return;
+    }
+
+    handlePlayerMovement(this);
+    handleShooting(this);
+    moveEnemiesTowardsPlayer(this);
+    removeOffscreenBullets(this);
+  }
+}
+
 // Configuracao do jogo
 const config = {
   type: Phaser.AUTO,
@@ -10,49 +130,117 @@ const config = {
       debug: false
     }
   },
-  scene: {
-    preload,
-    create,
-    update
-  }
+  scene: [MenuScene, RulesScene, GameScene]
 };
-
-// Constantes do jogo
-const PLAYER_SPEED = 220;
-const BULLET_SPEED = 420;
-const FIRE_RATE = 250;
-const ENEMY_SPEED = 90;
-const ENEMY_SPAWN_RATE = 1200;
-const MAX_ENEMIES = 20;
-const ENEMY_SCORE = 10;
-const STARTING_LIVES = 3;
 
 const game = new Phaser.Game(config);
 
-// Ciclo principal Phaser
-function preload() {
+// Menu e regras
+function setupMenu(scene) {
+  scene.selectedOption = 0;
+  scene.menuTexts = [];
+
+  scene.titleText = scene.add.text(scene.scale.width / 2, 120, "Counter-Shooter", {
+    fontSize: "48px",
+    color: "#ffffff"
+  }).setOrigin(0.5);
+
+  scene.helpText = scene.add.text(scene.scale.width / 2, 500, getText("menuHelp"), {
+    fontSize: "18px",
+    color: "#c9d1d9"
+  }).setOrigin(0.5);
+
+  createMenuOptions(scene);
+  setupMenuInput(scene);
+  updateMenuSelection(scene);
 }
 
-function create() {
-  createTextures(this);
-  setupGameState(this);
-  setupPlayer(this);
-  setupShooting(this);
-  setupEnemies(this);
-  setupHud(this);
-  setupCollisions(this);
-  setupGameOverInput(this);
+function createMenuOptions(scene) {
+  const options = getMenuOptions();
+
+  scene.menuTexts.forEach((text) => text.destroy());
+  scene.menuTexts = [];
+
+  options.forEach((option, index) => {
+    const menuText = scene.add.text(scene.scale.width / 2, 240 + index * 58, option, {
+      fontSize: "28px",
+      color: "#ffffff"
+    }).setOrigin(0.5);
+
+    scene.menuTexts.push(menuText);
+  });
 }
 
-function update() {
-  if (this.isGameOver) {
+function setupMenuInput(scene) {
+  scene.input.keyboard.on("keydown-UP", () => {
+    scene.selectedOption = Phaser.Math.Wrap(scene.selectedOption - 1, 0, scene.menuTexts.length);
+    updateMenuSelection(scene);
+  });
+
+  scene.input.keyboard.on("keydown-DOWN", () => {
+    scene.selectedOption = Phaser.Math.Wrap(scene.selectedOption + 1, 0, scene.menuTexts.length);
+    updateMenuSelection(scene);
+  });
+
+  scene.input.keyboard.on("keydown-ENTER", () => {
+    selectMenuOption(scene);
+  });
+}
+
+function getMenuOptions() {
+  return [
+    getText("play"),
+    getText("rules"),
+    `${getText("language")}: ${gameState.language.toUpperCase()}`
+  ];
+}
+
+function updateMenuSelection(scene) {
+  scene.menuTexts.forEach((text, index) => {
+    const isSelected = index === scene.selectedOption;
+
+    text.setText(`${isSelected ? "> " : "  "}${getMenuOptions()[index]}`);
+    text.setColor(isSelected ? "#f2cc60" : "#ffffff");
+  });
+}
+
+function selectMenuOption(scene) {
+  if (scene.selectedOption === 0) {
+    scene.scene.start("GameScene");
     return;
   }
 
-  handlePlayerMovement(this);
-  handleShooting(this);
-  moveEnemiesTowardsPlayer(this);
-  removeOffscreenBullets(this);
+  if (scene.selectedOption === 1) {
+    scene.scene.start("RulesScene");
+    return;
+  }
+
+  toggleLanguage();
+  scene.helpText.setText(getText("menuHelp"));
+  updateMenuSelection(scene);
+}
+
+function setupRules(scene) {
+  scene.add.text(scene.scale.width / 2, 90, getText("rulesTitle"), {
+    fontSize: "42px",
+    color: "#ffffff"
+  }).setOrigin(0.5);
+
+  getText("rulesText").forEach((line, index) => {
+    scene.add.text(120, 190 + index * 45, line, {
+      fontSize: "22px",
+      color: "#c9d1d9"
+    });
+  });
+
+  scene.add.text(scene.scale.width / 2, 520, getText("back"), {
+    fontSize: "20px",
+    color: "#f2cc60"
+  }).setOrigin(0.5);
+
+  scene.input.keyboard.on("keydown-ESC", () => {
+    scene.scene.start("MenuScene");
+  });
 }
 
 // Texturas
@@ -63,6 +251,10 @@ function createTextures(scene) {
 }
 
 function createPlayerTexture(scene) {
+  if (scene.textures.exists("player")) {
+    return;
+  }
+
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0x3fb950, 1);
@@ -74,6 +266,10 @@ function createPlayerTexture(scene) {
 }
 
 function createBulletTexture(scene) {
+  if (scene.textures.exists("bullet")) {
+    return;
+  }
+
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0xf2cc60, 1);
@@ -83,6 +279,10 @@ function createBulletTexture(scene) {
 }
 
 function createEnemyTexture(scene) {
+  if (scene.textures.exists("enemy")) {
+    return;
+  }
+
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0xd73a49, 1);
@@ -291,7 +491,7 @@ function setupHud(scene) {
     color: "#ffffff"
   });
 
-  scene.add.text(16, 44, "Mover: WASD/setas | Disparar: SPACE/clique", {
+  scene.add.text(16, 44, getText("controls"), {
     fontSize: "16px",
     color: "#c9d1d9"
   });
@@ -300,7 +500,7 @@ function setupHud(scene) {
 }
 
 function updateHud(scene) {
-  scene.hudText.setText(`Pontuacao: ${scene.score} | Vidas: ${scene.lives}`);
+  scene.hudText.setText(`${getText("score")}: ${scene.score} | ${getText("lives")}: ${scene.lives}`);
 }
 
 // Colisoes e overlaps
@@ -339,10 +539,17 @@ function onEnemyHitsPlayer(player, enemy) {
 // Game Over e reinicio
 function setupGameOverInput(scene) {
   scene.restartKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+  scene.menuKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
   scene.restartKey.on("down", () => {
     if (scene.isGameOver) {
       scene.scene.restart();
+    }
+  });
+
+  scene.menuKey.on("down", () => {
+    if (scene.isGameOver) {
+      scene.scene.start("MenuScene");
     }
   });
 }
@@ -357,14 +564,19 @@ function showGameOver(scene) {
   destroyGroupObjects(scene.enemies);
   scene.enemySpawnTimer.paused = true;
 
-  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 - 30, "Game Over", {
+  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 - 30, getText("gameOver"), {
     fontSize: "48px",
     color: "#ffffff"
   }).setOrigin(0.5);
 
-  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 30, "Pressiona R para reiniciar", {
+  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 30, getText("restart"), {
     fontSize: "22px",
     color: "#c9d1d9"
+  }).setOrigin(0.5);
+
+  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 64, getText("gameOverMenu"), {
+    fontSize: "22px",
+    color: "#f2cc60"
   }).setOrigin(0.5);
 }
 
