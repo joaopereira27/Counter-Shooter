@@ -11,6 +11,9 @@ const MAX_AMMO = 10;
 const RELOAD_TIME = 2500;
 const POOL_SPEED_MULTIPLIER = 0.45;
 const SLOW_ZONE_MULTIPLIER = 0.65;
+const PLAYER_SIZE = 20;
+const ENEMY_SIZE = 20;
+const CHARACTER_RADIUS = 9;
 const MAPS = {
   poolday: {
     name: "Pool Day",
@@ -36,42 +39,31 @@ const MAPS = {
       { x: 480, y: 308, width: 42, height: 18 }
     ],
     obstacles: [
-      { x: 64, y: 84, width: 20, height: 504 },
-      { x: 716, y: 84, width: 20, height: 504 },
-      { x: 84, y: 66, width: 104, height: 12 },
-      { x: 84, y: 84, width: 14, height: 26 },
-      { x: 267, y: 17, width: 158, height: 18 },
-      { x: 267, y: 17, width: 18, height: 109 },
-      { x: 407, y: 17, width: 18, height: 51 },
-      { x: 425, y: 60, width: 110, height: 14 },
-      { x: 535, y: 70, width: 73, height: 16 },
-      { x: 608, y: 66, width: 20, height: 64 },
-      { x: 628, y: 66, width: 88, height: 12 },
-      { x: 188, y: 66, width: 20, height: 64 },
-      { x: 84, y: 77, width: 12, height: 32 },
-      { x: 700, y: 77, width: 16, height: 32 },
-      { x: 68, y: 584, width: 664, height: 14 },
-      { x: 140, y: 492, width: 146, height: 18 },
-      { x: 514, y: 492, width: 146, height: 18 },
-      { x: 264, y: 440, width: 24, height: 98 },
-      { x: 512, y: 440, width: 24, height: 98 },
-      { x: 360, y: 502, width: 66, height: 38 },
-      { x: 286, y: 126, width: 54, height: 20 },
-      { x: 438, y: 126, width: 105, height: 20 },
-      { x: 160, y: 205, width: 20, height: 188 },
-      { x: 256, y: 205, width: 22, height: 187 },
-      { x: 160, y: 255, width: 118, height: 80 },
-      { x: 522, y: 205, width: 22, height: 187 },
-      { x: 622, y: 205, width: 20, height: 188 },
-      { x: 522, y: 255, width: 120, height: 80 },
-      { x: 142, y: 234, width: 16, height: 126 },
-      { x: 706, y: 282, width: 18, height: 90 },
-      { x: 638, y: 224, width: 18, height: 16 },
-      { x: 638, y: 248, width: 18, height: 16 },
-      { x: 638, y: 272, width: 18, height: 16 },
-      { x: 98, y: 70, width: 14, height: 18 },
-      { x: 126, y: 70, width: 14, height: 18 },
-      { x: 154, y: 70, width: 14, height: 18 }
+      // Exterior do mapa: bloqueia a zona fora do contorno sem tapar o chao colorido.
+      { x: 0, y: 0, width: 64, height: 600 },
+      { x: 736, y: 0, width: 64, height: 600 },
+      { x: 0, y: 0, width: 800, height: 17 },
+      { x: 0, y: 598, width: 800, height: 2 },
+      { x: 64, y: 0, width: 203, height: 66 },
+      { x: 535, y: 0, width: 201, height: 66 },
+      // Contorno e objetos escuros/cinzentos do mapa.
+      { x: 252, y: 122, width: 89, height: 28 },
+      { x: 399, y: 122, width: 149, height: 28 },
+      { x: 161, y: 197, width: 17, height: 182 },
+      { x: 161, y: 245, width: 115, height: 80 },
+      { x: 255, y: 197, width: 20, height: 171 },
+      { x: 522, y: 197, width: 18, height: 182 },
+      { x: 522, y: 245, width: 125, height: 80 },
+      { x: 627, y: 197, width: 20, height: 182 },
+      { x: 142, y: 477, width: 145, height: 20 },
+      { x: 256, y: 425, width: 19, height: 99 },
+      { x: 512, y: 425, width: 19, height: 99 },
+      { x: 512, y: 477, width: 145, height: 20 },
+      { x: 345, y: 480, width: 113, height: 33 },
+      { x: 345, y: 513, width: 30, height: 55 },
+      { x: 170, y: 62, width: 18, height: 80 },
+      { x: 612, y: 62, width: 18, height: 80 }
+
     ]
   },
   map2: {
@@ -410,10 +402,10 @@ function createPlayerTexture(scene) {
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0x3fb950, 1);
-  graphics.fillTriangle(16, 0, 32, 32, 0, 32);
-  graphics.lineStyle(3, 0xffffff, 1);
-  graphics.strokeTriangle(16, 0, 32, 32, 0, 32);
-  graphics.generateTexture("player", 32, 32);
+  graphics.fillTriangle(10, 0, 20, 20, 0, 20);
+  graphics.lineStyle(2, 0xffffff, 1);
+  graphics.strokeTriangle(10, 0, 20, 20, 0, 20);
+  graphics.generateTexture("player", PLAYER_SIZE, PLAYER_SIZE);
   graphics.destroy();
 }
 
@@ -438,10 +430,10 @@ function createEnemyTexture(scene) {
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0xd73a49, 1);
-  graphics.fillCircle(16, 16, 16);
-  graphics.lineStyle(3, 0xffffff, 1);
-  graphics.strokeCircle(16, 16, 14);
-  graphics.generateTexture("enemy", 32, 32);
+  graphics.fillCircle(10, 10, 10);
+  graphics.lineStyle(2, 0xffffff, 1);
+  graphics.strokeCircle(10, 10, 8);
+  graphics.generateTexture("enemy", ENEMY_SIZE, ENEMY_SIZE);
   graphics.destroy();
 }
 
@@ -539,6 +531,7 @@ function getTerrainSpeedMultiplier(scene, gameObject) {
 function setupPlayer(scene) {
   const spawn = scene.currentMap.playerSpawn;
   scene.player = scene.physics.add.sprite(spawn.x, spawn.y, "player");
+  scene.player.setCircle(CHARACTER_RADIUS, 1, 1);
   scene.player.setCollideWorldBounds(true);
 
   scene.cursors = scene.input.keyboard.createCursorKeys();
@@ -694,7 +687,7 @@ function spawnEnemy(scene) {
   const spawnPoint = getEnemySpawnPoint(scene);
   const enemy = scene.enemies.create(spawnPoint.x, spawnPoint.y, "enemy");
 
-  enemy.setCircle(14, 2, 2);
+  enemy.setCircle(CHARACTER_RADIUS, 1, 1);
   enemy.setCollideWorldBounds(false);
   enemy.setBounce(0);
   enemy.setDrag(0);
