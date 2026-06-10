@@ -14,6 +14,11 @@ const SLOW_ZONE_MULTIPLIER = 0.65;
 const PLAYER_SIZE = 20;
 const ENEMY_SIZE = 20;
 const CHARACTER_RADIUS = 9;
+const ENEMY_ROUTE_LOOK_AHEAD = 54;
+const ENEMY_STUCK_DISTANCE = 0.5;
+const ENEMY_STUCK_FRAMES = 18;
+const ENEMY_AVOID_TIME = 450;
+const PATH_CELL_SIZE = 16;
 const MAPS = {
   poolday: {
     name: "Pool Day",
@@ -43,26 +48,41 @@ const MAPS = {
       { x: 0, y: 0, width: 64, height: 600 },
       { x: 736, y: 0, width: 64, height: 600 },
       { x: 0, y: 0, width: 800, height: 17 },
-      { x: 0, y: 598, width: 800, height: 2 },
+      { x: 0, y: 596, width: 800, height: 4 },
       { x: 64, y: 0, width: 203, height: 66 },
       { x: 535, y: 0, width: 201, height: 66 },
       // Contorno e objetos escuros/cinzentos do mapa.
-      { x: 252, y: 122, width: 89, height: 28 },
-      { x: 399, y: 122, width: 149, height: 28 },
-      { x: 161, y: 197, width: 17, height: 182 },
-      { x: 161, y: 245, width: 115, height: 80 },
-      { x: 255, y: 197, width: 20, height: 171 },
-      { x: 522, y: 197, width: 18, height: 182 },
-      { x: 522, y: 245, width: 125, height: 80 },
-      { x: 627, y: 197, width: 20, height: 182 },
-      { x: 142, y: 477, width: 145, height: 20 },
-      { x: 256, y: 425, width: 19, height: 99 },
-      { x: 512, y: 425, width: 19, height: 99 },
-      { x: 512, y: 477, width: 145, height: 20 },
-      { x: 345, y: 480, width: 113, height: 33 },
-      { x: 345, y: 513, width: 30, height: 55 },
-      { x: 170, y: 62, width: 18, height: 80 },
-      { x: 612, y: 62, width: 18, height: 80 }
+      { x: 64, y: 82, width: 18, height: 506 },
+      { x: 718, y: 82, width: 18, height: 506 },
+      { x: 64, y: 584, width: 672, height: 16 },
+      { x: 82, y: 66, width: 107, height: 14 },
+      { x: 82, y: 84, width: 14, height: 30 },
+      { x: 170, y: 66, width: 19, height: 82 },
+      { x: 189, y: 84, width: 62, height: 14 },
+      { x: 267, y: 17, width: 158, height: 18 },
+      { x: 267, y: 17, width: 18, height: 72 },
+      { x: 407, y: 17, width: 18, height: 52 },
+      { x: 425, y: 59, width: 110, height: 16 },
+      { x: 535, y: 70, width: 73, height: 16 },
+      { x: 608, y: 66, width: 20, height: 82 },
+      { x: 628, y: 66, width: 90, height: 14 },
+      { x: 700, y: 84, width: 18, height: 30 },
+      { x: 260, y: 126, width: 78, height: 20 },
+      { x: 402, y: 126, width: 142, height: 20 },
+      { x: 164, y: 202, width: 11, height: 172 },
+      { x: 165, y: 251, width: 106, height: 68 },
+      { x: 259, y: 202, width: 12, height: 159 },
+      { x: 526, y: 202, width: 10, height: 172 },
+      { x: 526, y: 251, width: 116, height: 68 },
+      { x: 631, y: 202, width: 12, height: 172 },
+      { x: 146, y: 481, width: 137, height: 12 },
+      { x: 260, y: 430, width: 11, height: 88 },
+      { x: 516, y: 430, width: 11, height: 88 },
+      { x: 516, y: 481, width: 137, height: 12 },
+      { x: 350, y: 484, width: 76, height: 25 },
+      { x: 350, y: 517, width: 18, height: 43 },
+      { x: 174, y: 66, width: 10, height: 72 },
+      { x: 616, y: 66, width: 10, height: 72 }
 
     ]
   },
@@ -482,17 +502,23 @@ function isInAnyRect(gameObject, rects) {
   return rects.some((rect) => isInRect(gameObject, rect));
 }
 
-function isPointInRect(x, y, rect) {
-  return (
-    x >= rect.x &&
-    x <= rect.x + rect.width &&
-    y >= rect.y &&
-    y <= rect.y + rect.height
+function getExpandedRect(rect, margin) {
+  return new Phaser.Geom.Rectangle(
+    rect.x - margin,
+    rect.y - margin,
+    rect.width + margin * 2,
+    rect.height + margin * 2
   );
 }
 
-function isPointInAnyRect(x, y, rects) {
-  return rects.some((rect) => isPointInRect(x, y, rect));
+function isPointNearRect(x, y, rect, margin) {
+  const expandedRect = getExpandedRect(rect, margin);
+
+  return expandedRect.contains(x, y);
+}
+
+function isPointNearAnyRect(x, y, rects, margin) {
+  return rects.some((rect) => isPointNearRect(x, y, rect, margin));
 }
 
 function lineIntersectsRect(line, rect) {
@@ -501,14 +527,163 @@ function lineIntersectsRect(line, rect) {
   return Phaser.Geom.Intersects.LineToRectangle(line, phaserRect);
 }
 
-function isPathBlocked(scene, startX, startY, endX, endY) {
+function lineIntersectsExpandedRect(line, rect, margin) {
+  return Phaser.Geom.Intersects.LineToRectangle(line, getExpandedRect(rect, margin));
+}
+
+function isPathBlocked(scene, startX, startY, endX, endY, margin = 0) {
   if (!scene.currentMap || !scene.currentMap.obstacles.length) {
     return false;
   }
 
   const line = new Phaser.Geom.Line(startX, startY, endX, endY);
 
-  return scene.currentMap.obstacles.some((rect) => lineIntersectsRect(line, rect));
+  return scene.currentMap.obstacles.some((rect) => (
+    margin > 0
+      ? lineIntersectsExpandedRect(line, rect, margin)
+      : lineIntersectsRect(line, rect)
+  ));
+}
+
+function getNavigationCell(x, y) {
+  return {
+    col: Math.floor(x / PATH_CELL_SIZE),
+    row: Math.floor(y / PATH_CELL_SIZE)
+  };
+}
+
+function getNavigationCellKey(cell) {
+  return `${cell.col},${cell.row}`;
+}
+
+function getNavigationCellCenter(cell) {
+  return {
+    x: cell.col * PATH_CELL_SIZE + PATH_CELL_SIZE / 2,
+    y: cell.row * PATH_CELL_SIZE + PATH_CELL_SIZE / 2
+  };
+}
+
+function isNavigationCellInsideMap(scene, cell) {
+  return (
+    cell.col >= 0 &&
+    cell.row >= 0 &&
+    cell.col < Math.ceil(scene.scale.width / PATH_CELL_SIZE) &&
+    cell.row < Math.ceil(scene.scale.height / PATH_CELL_SIZE)
+  );
+}
+
+function isNavigationCellWalkable(scene, cell) {
+  if (!isNavigationCellInsideMap(scene, cell)) {
+    return false;
+  }
+
+  const center = getNavigationCellCenter(cell);
+
+  return !isPointNearAnyRect(center.x, center.y, scene.currentMap.obstacles, CHARACTER_RADIUS + 2);
+}
+
+function getNearestWalkableCell(scene, cell, maxRadius) {
+  if (isNavigationCellWalkable(scene, cell)) {
+    return cell;
+  }
+
+  for (let radius = 1; radius <= maxRadius; radius += 1) {
+    for (let rowOffset = -radius; rowOffset <= radius; rowOffset += 1) {
+      for (let colOffset = -radius; colOffset <= radius; colOffset += 1) {
+        const candidate = {
+          col: cell.col + colOffset,
+          row: cell.row + rowOffset
+        };
+
+        if (isNavigationCellWalkable(scene, candidate)) {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function getNavigationNeighbors(scene, cell) {
+  const offsets = [
+    { col: 1, row: 0 },
+    { col: -1, row: 0 },
+    { col: 0, row: 1 },
+    { col: 0, row: -1 }
+  ];
+
+  return offsets
+    .map((offset) => ({
+      col: cell.col + offset.col,
+      row: cell.row + offset.row
+    }))
+    .filter((candidate) => isNavigationCellWalkable(scene, candidate));
+}
+
+function getPathDirectionToPlayer(scene, enemy) {
+  const startCell = getNearestWalkableCell(scene, getNavigationCell(enemy.x, enemy.y), 4);
+  const targetCell = getNearestWalkableCell(scene, getNavigationCell(scene.player.x, scene.player.y), 6);
+
+  if (!startCell || !targetCell) {
+    return null;
+  }
+
+  const startKey = getNavigationCellKey(startCell);
+  const targetKey = getNavigationCellKey(targetCell);
+
+  if (startKey === targetKey) {
+    return getDirectionToPlayer(scene, enemy);
+  }
+
+  const queue = [startCell];
+  const visited = new Set([startKey]);
+  const cameFrom = {};
+  let foundTarget = false;
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const currentKey = getNavigationCellKey(current);
+
+    if (currentKey === targetKey) {
+      foundTarget = true;
+      break;
+    }
+
+    getNavigationNeighbors(scene, current).forEach((neighbor) => {
+      const neighborKey = getNavigationCellKey(neighbor);
+
+      if (visited.has(neighborKey)) {
+        return;
+      }
+
+      visited.add(neighborKey);
+      cameFrom[neighborKey] = currentKey;
+      queue.push(neighbor);
+    });
+  }
+
+  if (!foundTarget) {
+    return null;
+  }
+
+  let nextKey = targetKey;
+  let previousKey = cameFrom[nextKey];
+
+  while (previousKey && previousKey !== startKey) {
+    nextKey = previousKey;
+    previousKey = cameFrom[nextKey];
+  }
+
+  const [nextCol, nextRow] = nextKey.split(",").map(Number);
+  const nextCenter = getNavigationCellCenter({ col: nextCol, row: nextRow });
+  const direction = new Phaser.Math.Vector2(nextCenter.x - enemy.x, nextCenter.y - enemy.y);
+
+  if (direction.lengthSq() < 1) {
+    return getDirectionToPlayer(scene, enemy);
+  }
+
+  return direction.normalize();
 }
 
 function getTerrainSpeedMultiplier(scene, gameObject) {
@@ -692,6 +867,11 @@ function spawnEnemy(scene) {
   enemy.setBounce(0);
   enemy.setDrag(0);
   enemy.setMaxVelocity(ENEMY_SPEED);
+  enemy.lastX = enemy.x;
+  enemy.lastY = enemy.y;
+  enemy.stuckFrames = 0;
+  enemy.avoidUntil = 0;
+  enemy.avoidDirection = null;
 }
 
 function getEnemySpawnPoint(scene) {
@@ -733,6 +913,8 @@ function getEnemySpawnPoint(scene) {
 
 function moveEnemiesTowardsPlayer(scene) {
   scene.enemies.children.each((enemy) => {
+    updateEnemyStuckState(scene, enemy);
+
     const direction = getEnemyMoveDirection(scene, enemy);
 
     enemy.setVelocity(
@@ -743,7 +925,26 @@ function moveEnemiesTowardsPlayer(scene) {
   });
 }
 
-function getEnemyMoveDirection(scene, enemy) {
+function updateEnemyStuckState(scene, enemy) {
+  const distanceMoved = Phaser.Math.Distance.Between(enemy.x, enemy.y, enemy.lastX, enemy.lastY);
+
+  if (distanceMoved < ENEMY_STUCK_DISTANCE) {
+    enemy.stuckFrames += 1;
+  } else {
+    enemy.stuckFrames = 0;
+  }
+
+  enemy.lastX = enemy.x;
+  enemy.lastY = enemy.y;
+
+  if (enemy.stuckFrames >= ENEMY_STUCK_FRAMES) {
+    enemy.avoidDirection = getAlternativeEnemyDirection(scene, enemy, getDirectionToPlayer(scene, enemy), true);
+    enemy.avoidUntil = scene.time.now + ENEMY_AVOID_TIME;
+    enemy.stuckFrames = 0;
+  }
+}
+
+function getDirectionToPlayer(scene, enemy) {
   const direction = new Phaser.Math.Vector2(
     scene.player.x - enemy.x,
     scene.player.y - enemy.y
@@ -753,54 +954,92 @@ function getEnemyMoveDirection(scene, enemy) {
     direction.set(Phaser.Math.FloatBetween(-1, 1), Phaser.Math.FloatBetween(-1, 1));
   }
 
-  direction.normalize();
+  return direction.normalize();
+}
 
-  if (!isPathBlocked(scene, enemy.x, enemy.y, scene.player.x, scene.player.y)) {
+function getEnemyMoveDirection(scene, enemy) {
+  if (enemy.avoidDirection && scene.time.now < enemy.avoidUntil) {
+    return enemy.avoidDirection;
+  }
+
+  const direction = getDirectionToPlayer(scene, enemy);
+
+  if (!isPathBlocked(scene, enemy.x, enemy.y, scene.player.x, scene.player.y, CHARACTER_RADIUS + 2)) {
+    enemy.avoidDirection = null;
+    enemy.avoidUntil = 0;
     return direction;
   }
 
-  return getAlternativeEnemyDirection(scene, enemy, direction);
+  const pathDirection = getPathDirectionToPlayer(scene, enemy);
+
+  if (pathDirection) {
+    enemy.avoidDirection = null;
+    enemy.avoidUntil = 0;
+    return pathDirection;
+  }
+
+  enemy.avoidDirection = getAlternativeEnemyDirection(scene, enemy, direction, false);
+  enemy.avoidUntil = scene.time.now + ENEMY_AVOID_TIME / 2;
+
+  return enemy.avoidDirection;
 }
 
-function getAlternativeEnemyDirection(scene, enemy, direction) {
+function getAlternativeEnemyDirection(scene, enemy, direction, preferEscape) {
   const baseAngle = direction.angle();
   const angleOffsets = [
+    0,
+    Math.PI / 8,
+    -Math.PI / 8,
     Math.PI / 4,
     -Math.PI / 4,
+    (Math.PI * 3) / 8,
+    (-Math.PI * 3) / 8,
     Math.PI / 2,
     -Math.PI / 2,
+    (Math.PI * 5) / 8,
+    (-Math.PI * 5) / 8,
     (Math.PI * 3) / 4,
     (-Math.PI * 3) / 4,
+    (Math.PI * 7) / 8,
+    (-Math.PI * 7) / 8,
     Math.PI
   ];
-  const lookAhead = 42;
   let bestDirection = direction;
   let bestDistance = Number.MAX_VALUE;
+  let foundFreeDirection = false;
 
   angleOffsets.forEach((offset) => {
     const candidate = new Phaser.Math.Vector2(
       Math.cos(baseAngle + offset),
       Math.sin(baseAngle + offset)
     );
-    const nextX = enemy.x + candidate.x * lookAhead;
-    const nextY = enemy.y + candidate.y * lookAhead;
+    const nextX = enemy.x + candidate.x * ENEMY_ROUTE_LOOK_AHEAD;
+    const nextY = enemy.y + candidate.y * ENEMY_ROUTE_LOOK_AHEAD;
 
     if (
-      isPointInAnyRect(nextX, nextY, scene.currentMap.obstacles) ||
-      isPathBlocked(scene, enemy.x, enemy.y, nextX, nextY)
+      isPointNearAnyRect(nextX, nextY, scene.currentMap.obstacles, CHARACTER_RADIUS + 2) ||
+      isPathBlocked(scene, enemy.x, enemy.y, nextX, nextY, CHARACTER_RADIUS + 2)
     ) {
       return;
     }
 
     const distanceToPlayer = Phaser.Math.Distance.Between(nextX, nextY, scene.player.x, scene.player.y);
+    const score = preferEscape
+      ? distanceToPlayer - Math.abs(offset) * 20
+      : distanceToPlayer + Math.abs(offset) * 12;
 
-    if (distanceToPlayer < bestDistance) {
-      bestDistance = distanceToPlayer;
+    if (score < bestDistance) {
+      bestDistance = score;
       bestDirection = candidate;
+      foundFreeDirection = true;
     }
   });
 
-  return bestDirection;
+  if (foundFreeDirection) {
+    return bestDirection;
+  }
+
+  return new Phaser.Math.Vector2(-direction.y, direction.x).normalize();
 }
 
 // Pontuacao, vidas e HUD
