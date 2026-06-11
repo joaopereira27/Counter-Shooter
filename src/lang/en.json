@@ -4,6 +4,7 @@
   "rules": "How to play?",
   "language": "Language",
   "languageCode": "EN",
+  "selectMap": "Select map",
   "rulesTitle": "How to play?",
   "rulesText": [
     "Move the player with WASD or arrow keys.",
@@ -14,6 +15,8 @@
   "back": "ESC to return to menu",
   "score": "Score",
   "lives": "Lives",
+  "ammo": "Ammo",
+  "reloading": "Reloading",
   "controls": "Move: WASD/arrows | Shoot: SPACE/click",
   "gameOver": "Game Over",
   "restart": "Press R to restart",

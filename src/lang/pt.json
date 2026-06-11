@@ -4,6 +4,7 @@
   "rules": "Como jogar?",
   "language": "Idioma",
   "languageCode": "PT",
+  "selectMap": "Selecionar mapa",
   "rulesTitle": "Como jogar?",
   "rulesText": [
     "Move o jogador com WASD ou as setas.",
@@ -14,6 +15,8 @@
   "back": "ESC para voltar ao menu",
   "score": "Pontuacao",
   "lives": "Vidas",
+  "ammo": "Balas",
+  "reloading": "A recarregar",
   "controls": "Mover: WASD/setas | Disparar: SPACE/clique",
   "gameOver": "Game Over",
   "restart": "Pressiona R para reiniciar",

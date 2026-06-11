@@ -83,9 +83,6 @@ const MAPS = {
       { x: 350, y: 517, width: 18, height: 43 },
       { x: 174, y: 66, width: 10, height: 72 },
       { x: 616, y: 66, width: 10, height: 72 }
-
-<<<<<<< HEAD
-=======
     ]
   },
   map2: {
@@ -99,10 +96,6 @@ const MAPS = {
   }
 };
 
-// Idioma
-let LANGUAGES = {};
-
->>>>>>> 7c5fd2282afdd6d1d3b65e5bb1f38210f08db939
 const gameState = {
   language: "pt",
   selectedMap: "map2"
@@ -111,29 +104,13 @@ const gameState = {
 const translations = {};
 
 function getText(key) {
-<<<<<<< HEAD
-  return translations[gameState.language][key];
-=======
-  const languageTexts = LANGUAGES[gameState.language] || LANGUAGES.pt || {};
+  const languageTexts = translations[gameState.language] || translations.pt || {};
 
   return languageTexts[key] || key;
->>>>>>> 7c5fd2282afdd6d1d3b65e5bb1f38210f08db939
 }
 
 function toggleLanguage() {
   gameState.language = gameState.language === "pt" ? "en" : "pt";
-}
-
-function preloadLanguageAssets(scene) {
-  scene.load.json("languages", "assets/data/languages.json");
-}
-
-function setupLanguages(scene) {
-  const loadedLanguages = scene.cache.json.get("languages");
-
-  if (loadedLanguages) {
-    LANGUAGES = loadedLanguages;
-  }
 }
 
 // Cena do menu
@@ -143,19 +120,11 @@ class MenuScene extends Phaser.Scene {
   }
 
   preload() {
-<<<<<<< HEAD
     loadTranslationFiles(this);
   }
 
   create() {
     setupTranslations(this);
-=======
-    preloadLanguageAssets(this);
-  }
-
-  create() {
-    setupLanguages(this);
->>>>>>> 7c5fd2282afdd6d1d3b65e5bb1f38210f08db939
     setupMenu(this);
   }
 }
@@ -167,11 +136,7 @@ class RulesScene extends Phaser.Scene {
   }
 
   create() {
-<<<<<<< HEAD
     setupTranslations(this);
-=======
-    setupLanguages(this);
->>>>>>> 7c5fd2282afdd6d1d3b65e5bb1f38210f08db939
     setupRules(this);
   }
 }
@@ -183,7 +148,7 @@ class MapSelectScene extends Phaser.Scene {
   }
 
   create() {
-    setupLanguages(this);
+    setupTranslations(this);
     setupMapSelect(this);
   }
 }
@@ -199,11 +164,7 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
-<<<<<<< HEAD
     setupTranslations(this);
-=======
-    setupLanguages(this);
->>>>>>> 7c5fd2282afdd6d1d3b65e5bb1f38210f08db939
     createTextures(this);
     setupGameState(this);
     setupMap(this);
@@ -251,8 +212,8 @@ function loadTranslationFiles(scene) {
 }
 
 function setupTranslations(scene) {
-  translations.pt = scene.cache.json.get("lang_pt");
-  translations.en = scene.cache.json.get("lang_en");
+  translations.pt = scene.cache.json.get("lang_pt") || translations.pt;
+  translations.en = scene.cache.json.get("lang_en") || translations.en;
 }
 
 // Menu e regras
