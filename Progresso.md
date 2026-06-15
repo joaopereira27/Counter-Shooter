@@ -18,10 +18,12 @@
 
 ## Inimigos
 - Target player
-- Aumento velocidade ao longo do tempo (a implementar)
-- Contornar obstáculos (a implementar)
+- Contornar obstáculos
 
 ## Mapa
 - Dois mapas (Poolday CS 1.6 e Mapa2)
-- Obstáculos (a implementar)
+- Obstáculos (a implementar no Mapa2)
 
+## Texturas
+- Texturas de jogador e inimigos
+- Texturas no Menu (a implementar)
