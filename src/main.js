@@ -11,9 +11,9 @@ const MAX_AMMO = 10;
 const RELOAD_TIME = 2500;
 const POOL_SPEED_MULTIPLIER = 0.45;
 const SLOW_ZONE_MULTIPLIER = 0.65;
-const PLAYER_SIZE = 20;
-const ENEMY_SIZE = 20;
-const CHARACTER_RADIUS = 9;
+const PLAYER_SIZE = 48;
+const ENEMY_SIZE = 48;
+const CHARACTER_RADIUS = 16;
 const ENEMY_ROUTE_LOOK_AHEAD = 54;
 const ENEMY_STUCK_DISTANCE = 0.5;
 const ENEMY_STUCK_FRAMES = 18;
@@ -398,6 +398,14 @@ function setupRules(scene) {
 
 // Texturas
 function preloadGameAssets(scene) {
+  if (!scene.textures.exists("player")) {
+    scene.load.image("player", "assets/textures/player.png");
+  }
+
+  if (!scene.textures.exists("enemy")) {
+    scene.load.image("enemy", "assets/textures/enemy.png");
+  }
+
   Object.values(MAPS).forEach((map) => {
     if (map.imageKey && !scene.textures.exists(map.imageKey)) {
       scene.load.image(map.imageKey, map.imagePath);
@@ -419,9 +427,9 @@ function createPlayerTexture(scene) {
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0x3fb950, 1);
-  graphics.fillTriangle(10, 0, 20, 20, 0, 20);
+  graphics.fillTriangle(24, 0, 48, 48, 0, 48);
   graphics.lineStyle(2, 0xffffff, 1);
-  graphics.strokeTriangle(10, 0, 20, 20, 0, 20);
+  graphics.strokeTriangle(24, 0, 48, 48, 0, 48);
   graphics.generateTexture("player", PLAYER_SIZE, PLAYER_SIZE);
   graphics.destroy();
 }
@@ -447,9 +455,9 @@ function createEnemyTexture(scene) {
   const graphics = scene.add.graphics();
 
   graphics.fillStyle(0xd73a49, 1);
-  graphics.fillCircle(10, 10, 10);
+  graphics.fillCircle(24, 24, 24);
   graphics.lineStyle(2, 0xffffff, 1);
-  graphics.strokeCircle(10, 10, 8);
+  graphics.strokeCircle(24, 24, 20);
   graphics.generateTexture("enemy", ENEMY_SIZE, ENEMY_SIZE);
   graphics.destroy();
 }
@@ -699,11 +707,20 @@ function getTerrainSpeedMultiplier(scene, gameObject) {
   return 1;
 }
 
+function setCharacterPhysicsBody(sprite) {
+  const radius = CHARACTER_RADIUS / sprite.scaleX;
+  const offsetX = (sprite.width - radius * 2) / 2;
+  const offsetY = (sprite.height - radius * 2) / 2;
+
+  sprite.setCircle(radius, offsetX, offsetY);
+}
+
 // Jogador e movimento
 function setupPlayer(scene) {
   const spawn = scene.currentMap.playerSpawn;
   scene.player = scene.physics.add.sprite(spawn.x, spawn.y, "player");
-  scene.player.setCircle(CHARACTER_RADIUS, 1, 1);
+  scene.player.setDisplaySize(PLAYER_SIZE, PLAYER_SIZE);
+  setCharacterPhysicsBody(scene.player);
   scene.player.setCollideWorldBounds(true);
 
   scene.cursors = scene.input.keyboard.createCursorKeys();
@@ -859,7 +876,8 @@ function spawnEnemy(scene) {
   const spawnPoint = getEnemySpawnPoint(scene);
   const enemy = scene.enemies.create(spawnPoint.x, spawnPoint.y, "enemy");
 
-  enemy.setCircle(CHARACTER_RADIUS, 1, 1);
+  enemy.setDisplaySize(ENEMY_SIZE, ENEMY_SIZE);
+  setCharacterPhysicsBody(enemy);
   enemy.setCollideWorldBounds(false);
   enemy.setBounce(0);
   enemy.setDrag(0);
