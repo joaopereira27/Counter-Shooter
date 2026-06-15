@@ -207,8 +207,8 @@ const game = new Phaser.Game(config);
 
 // Traducao
 function loadTranslationFiles(scene) {
-  scene.load.json("lang_pt", "src/lang/pt.json");
-  scene.load.json("lang_en", "src/lang/en.json");
+  scene.load.json("lang_pt", "assets/lang/pt.json");
+  scene.load.json("lang_en", "assets/lang/en.json");
 }
 
 function setupTranslations(scene) {
