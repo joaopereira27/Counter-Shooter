@@ -98,7 +98,8 @@ const MAPS = {
 
 const gameState = {
   language: "pt",
-  selectedMap: "map2"
+  selectedMap: "map2",
+  menuMusic: null
 };
 
 const translations = {};
@@ -121,6 +122,8 @@ class MenuScene extends Phaser.Scene {
 
   preload() {
     loadTranslationFiles(this);
+    loadMenuAssets(this);
+    loadAudioAssets(this);
   }
 
   create() {
@@ -137,6 +140,7 @@ class RulesScene extends Phaser.Scene {
 
   create() {
     setupTranslations(this);
+    playMenuMusic(this);
     setupRules(this);
   }
 }
@@ -149,6 +153,7 @@ class MapSelectScene extends Phaser.Scene {
 
   create() {
     setupTranslations(this);
+    playMenuMusic(this);
     setupMapSelect(this);
   }
 }
@@ -165,6 +170,7 @@ class GameScene extends Phaser.Scene {
 
   create() {
     setupTranslations(this);
+    stopMenuMusic(this);
     createTextures(this);
     setupGameState(this);
     setupMap(this);
@@ -205,6 +211,40 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+// Audio
+function loadAudioAssets(scene) {
+  scene.load.audio("backgroundMusic", "assets/audio/backgroundMusic.mp3");
+  scene.load.audio("gunshot", "assets/audio/gunshot.mp3");
+}
+
+function playMenuMusic(scene) {
+  if (gameState.menuMusic && gameState.menuMusic.isPlaying) {
+    return;
+  }
+
+  gameState.menuMusic = scene.sound.add("backgroundMusic", {
+    loop: true,
+    volume: 0.35
+  });
+  gameState.menuMusic.play();
+}
+
+function stopMenuMusic() {
+  if (!gameState.menuMusic) {
+    return;
+  }
+
+  gameState.menuMusic.stop();
+  gameState.menuMusic.destroy();
+  gameState.menuMusic = null;
+}
+
+function playGunshot(scene) {
+  scene.sound.play("gunshot", {
+    volume: 0.45
+  });
+}
+
 // Traducao
 function loadTranslationFiles(scene) {
   scene.load.json("lang_pt", "assets/lang/pt.json");
@@ -217,7 +257,26 @@ function setupTranslations(scene) {
 }
 
 // Menu e regras
+function loadMenuAssets(scene) {
+  if (!scene.textures.exists("backgroundMenu")) {
+    scene.load.image("backgroundMenu", "assets/textures/backgroundMenu.png");
+  }
+}
+
+function addMenuBackground(scene) {
+  scene.add.image(scene.scale.width / 2, scene.scale.height / 2, "backgroundMenu")
+    .setDisplaySize(scene.scale.width, scene.scale.height)
+    .setDepth(-20);
+
+  scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x000000, 0.38)
+    .setOrigin(0)
+    .setDepth(-10);
+}
+
 function setupMenu(scene) {
+  playMenuMusic(scene);
+  addMenuBackground(scene);
+
   scene.selectedOption = 0;
   scene.menuTexts = [];
 
@@ -306,6 +365,8 @@ function selectMenuOption(scene) {
 }
 
 function setupMapSelect(scene) {
+  addMenuBackground(scene);
+
   scene.selectedOption = 0;
   scene.mapOptions = ["poolday", "map2"];
   scene.mapTexts = [];
@@ -374,6 +435,8 @@ function updateMapSelection(scene) {
 }
 
 function setupRules(scene) {
+  addMenuBackground(scene);
+
   scene.add.text(scene.scale.width / 2, 90, getText("rulesTitle"), {
     fontSize: "42px",
     color: "#ffffff"
@@ -812,6 +875,7 @@ function shootBullet(scene, targetX, targetY) {
   bullet.setRotation(direction.angle() + Math.PI / 2);
 
   scene.ammo -= 1;
+  playGunshot(scene);
   scene.nextShotTime = scene.time.now + FIRE_RATE;
   updateHud(scene);
 
