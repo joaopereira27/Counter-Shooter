@@ -267,6 +267,7 @@ const game = new Phaser.Game(config);
 function loadAudioAssets(scene) {
   scene.load.audio("backgroundMusic", "assets/audio/backgroundMusic.mp3");
   scene.load.audio("gunshot", "assets/audio/gunshot.mp3");
+  scene.load.audio("reload", "assets/audio/reload.mp3");
 }
 
 function playMenuMusic(scene) {
@@ -295,6 +296,23 @@ function playGunshot(scene) {
   scene.sound.play("gunshot", {
     volume: 0.45
   });
+}
+
+function playReload(scene) {
+  scene.reloadSound = scene.sound.add("reload", {
+    volume: 0.55
+  });
+  scene.reloadSound.play();
+}
+
+function stopReloadSound(scene) {
+  if (!scene.reloadSound) {
+    return;
+  }
+
+  scene.reloadSound.stop();
+  scene.reloadSound.destroy();
+  scene.reloadSound = null;
 }
 
 // Traducao
@@ -951,6 +969,7 @@ function startReload(scene) {
   }
 
   scene.isReloading = true;
+  playReload(scene);
   updateHud(scene);
 
   scene.reloadTimer = scene.time.delayedCall(RELOAD_TIME, () => {
@@ -961,6 +980,7 @@ function startReload(scene) {
     scene.ammo = MAX_AMMO;
     scene.isReloading = false;
     scene.reloadTimer = null;
+    stopReloadSound(scene);
     updateHud(scene);
   });
 }
@@ -1189,6 +1209,7 @@ function setupGameState(scene) {
   scene.ammo = MAX_AMMO;
   scene.isReloading = false;
   scene.reloadTimer = null;
+  scene.reloadSound = null;
   scene.isGameOver = false;
   scene.currentMapKey = gameState.selectedMap;
 }
@@ -1328,6 +1349,7 @@ function showGameOver(scene) {
     scene.reloadTimer.remove(false);
     scene.reloadTimer = null;
   }
+  stopReloadSound(scene);
 
   scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x000000, 0.62)
     .setOrigin(0)
