@@ -21,9 +21,9 @@
 - Contornar obstáculos
 
 ## Mapa
-- Dois mapas (Poolday CS 1.6 e Mapa2)
-- Obstáculos (a implementar no Mapa2)
+- Dois mapas (Poolday CS 1.6 e Overpass)
+- Obstáculos
 
 ## Texturas
 - Texturas de jogador e inimigos
-- Texturas no Menu (a implementar)
+- Texturas no Menu

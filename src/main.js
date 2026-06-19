@@ -141,21 +141,12 @@ const MAPS = {
       { x: 204, y: 431, width: 78, height: 47 },
       { x: 232, y: 442, width: 52, height: 54 }
     ]
-  },
-  map2: {
-    name: "Mapa 2",
-    playerSpawn: { x: 400, y: 300 },
-    enemySpawns: null,
-    waterZones: [],
-    normalZones: [],
-    slowZones: [],
-    obstacles: []
   }
 };
 
 const gameState = {
   language: "pt",
-  selectedMap: "map2",
+  selectedMap: "poolday",
   menuMusic: null
 };
 
@@ -425,7 +416,7 @@ function setupMapSelect(scene) {
   addMenuBackground(scene);
 
   scene.selectedOption = 0;
-  scene.mapOptions = ["poolday", "overpass", "map2"];
+  scene.mapOptions = ["poolday", "overpass"];
   scene.mapTexts = [];
 
   scene.add.text(scene.scale.width / 2, 100, getText("selectMap"), {
@@ -584,19 +575,13 @@ function createEnemyTexture(scene) {
 
 // Mapas
 function setupMap(scene) {
-  scene.currentMap = MAPS[gameState.selectedMap] || MAPS.map2;
+  scene.currentMap = MAPS[gameState.selectedMap] || MAPS.poolday;
   scene.mapObstacles = scene.physics.add.staticGroup();
 
   if (scene.currentMap.imageKey) {
     scene.add.image(scene.scale.width / 2, scene.scale.height / 2, scene.currentMap.imageKey)
       .setDisplaySize(scene.scale.width, scene.scale.height)
       .setDepth(-10);
-  }
-
-  if (scene.currentMap === MAPS.map2) {
-    scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x222222)
-      .setOrigin(0)
-      .setDepth(-20);
   }
 
   scene.currentMap.obstacles.forEach((rect) => {
