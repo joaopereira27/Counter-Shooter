@@ -85,6 +85,63 @@ const MAPS = {
       { x: 616, y: 66, width: 10, height: 72 }
     ]
   },
+  overpass: {
+    name: "Overpass A",
+    imageKey: "overpass",
+    imagePath: "assets/maps/overpass.png",
+    playerSpawn: { x: 400, y: 520 },
+    enemySpawns: [
+      { x: 140, y: 80 },
+      { x: 660, y: 80 },
+      { x: 120, y: 310 },
+      { x: 700, y: 320 }
+    ],
+    waterZones: [
+      { x: 0, y: 37, width: 391, height: 56 },
+      { x: 33, y: 93, width: 241, height: 30 },
+      { x: 516, y: 50, width: 240, height: 85 },
+      { x: 204, y: 477, width: 37, height: 69 },
+      { x: 241, y: 496, width: 173, height: 63 }
+    ],
+    normalZones: [],
+    slowZones: [],
+    obstacles: [
+      // Hitboxes roxas do overlay do Overpass.
+      { x: 0, y: 0, width: 388, height: 37 },
+      { x: 500, y: 0, width: 300, height: 46 },
+      { x: 0, y: 159, width: 159, height: 69 },
+      { x: 0, y: 225, width: 64, height: 85 },
+      { x: 0, y: 352, width: 80, height: 61 },
+      { x: 0, y: 503, width: 103, height: 97 },
+      { x: 102, y: 562, width: 166, height: 38 },
+      { x: 268, y: 443, width: 156, height: 54 },
+      { x: 622, y: 499, width: 178, height: 101 },
+      { x: 744, y: 426, width: 56, height: 73 },
+      { x: 672, y: 439, width: 73, height: 35 },
+      { x: 487, y: 429, width: 68, height: 74 },
+      { x: 555, y: 439, width: 189, height: 37 },
+      { x: 622, y: 410, width: 51, height: 38 },
+      { x: 650, y: 352, width: 75, height: 34 },
+      { x: 622, y: 386, width: 51, height: 53 },
+      { x: 640, y: 231, width: 68, height: 50 },
+      { x: 622, y: 92, width: 178, height: 140 },
+      { x: 482, y: 210, width: 85, height: 21 },
+      { x: 548, y: 231, width: 19, height: 45 },
+      { x: 392, y: 366, width: 153, height: 26 },
+      { x: 421, y: 271, width: 43, height: 54 },
+      { x: 352, y: 303, width: 41, height: 50 },
+      { x: 352, y: 341, width: 18, height: 13 },
+      { x: 265, y: 167, width: 40, height: 32 },
+      { x: 295, y: 153, width: 31, height: 34 },
+      { x: 319, y: 143, width: 44, height: 32 },
+      { x: 341, y: 126, width: 122, height: 46 },
+      { x: 209, y: 249, width: 67, height: 41 },
+      { x: 122, y: 339, width: 110, height: 42 },
+      { x: 160, y: 381, width: 72, height: 72 },
+      { x: 204, y: 431, width: 78, height: 47 },
+      { x: 232, y: 442, width: 52, height: 54 }
+    ]
+  },
   map2: {
     name: "Mapa 2",
     playerSpawn: { x: 400, y: 300 },
@@ -368,7 +425,7 @@ function setupMapSelect(scene) {
   addMenuBackground(scene);
 
   scene.selectedOption = 0;
-  scene.mapOptions = ["poolday", "map2"];
+  scene.mapOptions = ["poolday", "overpass", "map2"];
   scene.mapTexts = [];
 
   scene.add.text(scene.scale.width / 2, 100, getText("selectMap"), {
