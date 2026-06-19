@@ -1,0 +1,121 @@
+export const MAPS = {
+  poolday: {
+    name: "Pool Day",
+    imageKey: "poolday",
+    imagePath: "assets/maps/poolday.png",
+    playerSpawn: { x: 400, y: 470 },
+    enemySpawns: [
+      { x: 100, y: 92 },
+      { x: 700, y: 92 },
+      { x: 90, y: 515 },
+      { x: 710, y: 515 }
+    ],
+    waterZones: [
+      { x: 316, y: 40, width: 58, height: 62 },
+      { x: 330, y: 230, width: 118, height: 202 }
+    ],
+    normalZones: [
+      { x: 389, y: 394, width: 12, height: 58 }
+    ],
+    slowZones: [
+      { x: 396, y: 68, width: 42, height: 112 },
+      { x: 398, y: 146, width: 18, height: 30 },
+      { x: 480, y: 308, width: 42, height: 18 }
+    ],
+    obstacles: [
+      { x: 0, y: 0, width: 64, height: 600 },
+      { x: 736, y: 0, width: 64, height: 600 },
+      { x: 0, y: 0, width: 800, height: 17 },
+      { x: 0, y: 596, width: 800, height: 4 },
+      { x: 64, y: 0, width: 203, height: 66 },
+      { x: 535, y: 0, width: 201, height: 66 },
+      { x: 64, y: 82, width: 18, height: 506 },
+      { x: 718, y: 82, width: 18, height: 506 },
+      { x: 64, y: 584, width: 672, height: 16 },
+      { x: 82, y: 66, width: 107, height: 14 },
+      { x: 82, y: 84, width: 14, height: 30 },
+      { x: 170, y: 66, width: 19, height: 82 },
+      { x: 189, y: 84, width: 62, height: 14 },
+      { x: 267, y: 17, width: 158, height: 18 },
+      { x: 267, y: 17, width: 18, height: 72 },
+      { x: 407, y: 17, width: 18, height: 52 },
+      { x: 425, y: 59, width: 110, height: 16 },
+      { x: 535, y: 70, width: 73, height: 16 },
+      { x: 608, y: 66, width: 20, height: 82 },
+      { x: 628, y: 66, width: 90, height: 14 },
+      { x: 700, y: 84, width: 18, height: 30 },
+      { x: 260, y: 126, width: 78, height: 20 },
+      { x: 402, y: 126, width: 142, height: 20 },
+      { x: 164, y: 202, width: 11, height: 172 },
+      { x: 165, y: 251, width: 106, height: 68 },
+      { x: 259, y: 202, width: 12, height: 159 },
+      { x: 526, y: 202, width: 10, height: 172 },
+      { x: 526, y: 251, width: 116, height: 68 },
+      { x: 631, y: 202, width: 12, height: 172 },
+      { x: 146, y: 481, width: 137, height: 12 },
+      { x: 260, y: 430, width: 11, height: 88 },
+      { x: 516, y: 430, width: 11, height: 88 },
+      { x: 516, y: 481, width: 137, height: 12 },
+      { x: 350, y: 484, width: 76, height: 25 },
+      { x: 350, y: 517, width: 18, height: 43 },
+      { x: 174, y: 66, width: 10, height: 72 },
+      { x: 616, y: 66, width: 10, height: 72 }
+    ]
+  },
+  overpass: {
+    name: "Overpass",
+    imageKey: "overpass",
+    imagePath: "assets/maps/overpass.png",
+    playerSpawn: { x: 400, y: 520 },
+    enemySpawns: [
+      { x: 140, y: 80 },
+      { x: 660, y: 80 },
+      { x: 120, y: 310 },
+      { x: 700, y: 320 }
+    ],
+    waterZones: [
+      { x: 0, y: 37, width: 391, height: 56 },
+      { x: 33, y: 93, width: 241, height: 30 },
+      { x: 516, y: 50, width: 240, height: 85 },
+      { x: 204, y: 477, width: 37, height: 69 },
+      { x: 241, y: 496, width: 173, height: 63 }
+    ],
+    normalZones: [],
+    slowZones: [],
+    obstacles: [
+      { x: 0, y: 0, width: 388, height: 37 },
+      { x: 500, y: 0, width: 300, height: 46 },
+      { x: 0, y: 159, width: 159, height: 69 },
+      { x: 0, y: 225, width: 64, height: 85 },
+      { x: 0, y: 352, width: 80, height: 61 },
+      { x: 0, y: 503, width: 103, height: 97 },
+      { x: 102, y: 562, width: 166, height: 38 },
+      { x: 268, y: 443, width: 156, height: 54 },
+      { x: 622, y: 499, width: 178, height: 101 },
+      { x: 744, y: 426, width: 56, height: 73 },
+      { x: 672, y: 439, width: 73, height: 35 },
+      { x: 487, y: 429, width: 68, height: 74 },
+      { x: 555, y: 439, width: 189, height: 37 },
+      { x: 622, y: 410, width: 51, height: 38 },
+      { x: 650, y: 352, width: 75, height: 34 },
+      { x: 622, y: 386, width: 51, height: 53 },
+      { x: 640, y: 231, width: 68, height: 50 },
+      { x: 622, y: 92, width: 178, height: 140 },
+      { x: 482, y: 210, width: 85, height: 21 },
+      { x: 548, y: 231, width: 19, height: 45 },
+      { x: 394, y: 382, width: 148, height: 18 },
+      { x: 421, y: 271, width: 43, height: 54 },
+      { x: 358, y: 312, width: 28, height: 34 },
+      { x: 358, y: 342, width: 12, height: 8 },
+      { x: 265, y: 167, width: 40, height: 32 },
+      { x: 295, y: 153, width: 31, height: 34 },
+      { x: 319, y: 143, width: 44, height: 32 },
+      { x: 341, y: 126, width: 122, height: 46 },
+      { x: 209, y: 249, width: 67, height: 41 },
+      { x: 122, y: 339, width: 110, height: 42 },
+      { x: 160, y: 381, width: 72, height: 72 },
+      { x: 204, y: 431, width: 78, height: 47 },
+      { x: 232, y: 442, width: 52, height: 54 }
+    ]
+  }
+};
