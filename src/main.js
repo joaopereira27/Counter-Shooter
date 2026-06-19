@@ -1,4 +1,4 @@
-// Constantes do jogo
+// Constantes
 const PLAYER_SPEED = 220;
 const BULLET_SPEED = 420;
 const FIRE_RATE = 250;
@@ -19,6 +19,8 @@ const ENEMY_STUCK_DISTANCE = 0.5;
 const ENEMY_STUCK_FRAMES = 18;
 const ENEMY_AVOID_TIME = 450;
 const PATH_CELL_SIZE = 16;
+
+// Mapas
 const MAPS = {
   poolday: {
     name: "Pool Day",
@@ -144,6 +146,8 @@ const MAPS = {
   }
 };
 
+
+// Estado global da sessao
 const gameState = {
   language: "pt",
   selectedMap: "poolday",
@@ -156,6 +160,7 @@ const gameState = {
 
 const translations = {};
 
+// Traducao
 function getText(key) {
   const languageTexts = translations[gameState.language] || translations.pt || {};
 
@@ -166,7 +171,8 @@ function toggleLanguage() {
   gameState.language = gameState.language === "pt" ? "en" : "pt";
 }
 
-// Cena do menu
+
+// Cenas
 class MenuScene extends Phaser.Scene {
   constructor() {
     super("MenuScene");
@@ -184,7 +190,6 @@ class MenuScene extends Phaser.Scene {
   }
 }
 
-// Cena de regras
 class RulesScene extends Phaser.Scene {
   constructor() {
     super("RulesScene");
@@ -197,7 +202,6 @@ class RulesScene extends Phaser.Scene {
   }
 }
 
-// Cena de selecao de mapa
 class MapSelectScene extends Phaser.Scene {
   constructor() {
     super("MapSelectScene");
@@ -210,7 +214,6 @@ class MapSelectScene extends Phaser.Scene {
   }
 }
 
-// Cena do jogo
 class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -246,7 +249,7 @@ class GameScene extends Phaser.Scene {
   }
 }
 
-// Configuracao do jogo
+// Configuracao Phaser
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -262,6 +265,7 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
 
 // Audio
 function loadAudioAssets(scene) {
@@ -315,7 +319,8 @@ function stopReloadSound(scene) {
   scene.reloadSound = null;
 }
 
-// Traducao
+
+// Carregamento das traducoes
 function loadTranslationFiles(scene) {
   scene.load.json("lang_pt", "assets/lang/pt.json");
   scene.load.json("lang_en", "assets/lang/en.json");
@@ -326,7 +331,8 @@ function setupTranslations(scene) {
   translations.en = scene.cache.json.get("lang_en") || translations.en;
 }
 
-// Menu e regras
+
+// Menu principal, selecao de mapa e regras
 function loadMenuAssets(scene) {
   if (!scene.textures.exists("backgroundMenu")) {
     scene.load.image("backgroundMenu", "assets/textures/backgroundMenu.png");
@@ -544,7 +550,8 @@ function setupRules(scene) {
   });
 }
 
-// Texturas
+
+// Texturas e assets do jogo
 function preloadGameAssets(scene) {
   if (!scene.textures.exists("player")) {
     scene.load.image("player", "assets/textures/player.png");
@@ -610,7 +617,8 @@ function createEnemyTexture(scene) {
   graphics.destroy();
 }
 
-// Mapas
+
+// Mapa, obstaculos e navegacao
 function setupMap(scene) {
   scene.currentMap = MAPS[gameState.selectedMap] || MAPS.poolday;
   scene.mapObstacles = scene.physics.add.staticGroup();
@@ -857,6 +865,7 @@ function setCharacterPhysicsBody(sprite) {
   sprite.setCircle(radius, offsetX, offsetY);
 }
 
+
 // Jogador e movimento
 function setupPlayer(scene) {
   const spawn = scene.currentMap.playerSpawn;
@@ -902,7 +911,8 @@ function handlePlayerMovement(scene) {
   }
 }
 
-// Disparos
+
+// Disparos e reload
 function setupShooting(scene) {
   scene.bullets = scene.physics.add.group();
   scene.nextShotTime = 0;
@@ -997,6 +1007,7 @@ function removeOffscreenBullets(scene) {
     }
   });
 }
+
 
 // Inimigos
 function setupEnemies(scene) {
@@ -1202,7 +1213,8 @@ function getAlternativeEnemyDirection(scene, enemy, direction, preferEscape) {
   return new Phaser.Math.Vector2(-direction.y, direction.x).normalize();
 }
 
-// Pontuacao, vidas e HUD
+
+// Pontuacao, vidas, municao e HUD
 function setupGameState(scene) {
   scene.score = 0;
   scene.lives = STARTING_LIVES;
@@ -1265,6 +1277,7 @@ function updateHighScore(scene) {
   return false;
 }
 
+
 // Colisoes e overlaps
 function setupCollisions(scene) {
   scene.physics.add.collider(scene.player, scene.mapObstacles);
@@ -1305,7 +1318,7 @@ function onEnemyHitsPlayer(player, enemy) {
   }
 }
 
-// Game Over e reinicio
+// Game Over
 function setupGameOverInput(scene) {
   scene.restartKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
   scene.menuKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
