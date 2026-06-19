@@ -13,7 +13,7 @@ const POOL_SPEED_MULTIPLIER = 0.45;
 const SLOW_ZONE_MULTIPLIER = 0.65;
 const PLAYER_SIZE = 48;
 const ENEMY_SIZE = 48;
-const CHARACTER_RADIUS = 16;
+const CHARACTER_RADIUS = 12;
 const ENEMY_ROUTE_LOOK_AHEAD = 54;
 const ENEMY_STUCK_DISTANCE = 0.5;
 const ENEMY_STUCK_FRAMES = 18;
@@ -127,10 +127,10 @@ const MAPS = {
       { x: 622, y: 92, width: 178, height: 140 },
       { x: 482, y: 210, width: 85, height: 21 },
       { x: 548, y: 231, width: 19, height: 45 },
-      { x: 392, y: 366, width: 153, height: 26 },
+      { x: 394, y: 382, width: 148, height: 18 },
       { x: 421, y: 271, width: 43, height: 54 },
-      { x: 352, y: 303, width: 41, height: 50 },
-      { x: 352, y: 341, width: 18, height: 13 },
+      { x: 358, y: 312, width: 28, height: 34 },
+      { x: 358, y: 342, width: 12, height: 8 },
       { x: 265, y: 167, width: 40, height: 32 },
       { x: 295, y: 153, width: 31, height: 34 },
       { x: 319, y: 143, width: 44, height: 32 },
