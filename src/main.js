@@ -86,7 +86,7 @@ const MAPS = {
     ]
   },
   overpass: {
-    name: "Overpass A",
+    name: "Overpass",
     imageKey: "overpass",
     imagePath: "assets/maps/overpass.png",
     playerSpawn: { x: 400, y: 520 },
@@ -147,7 +147,11 @@ const MAPS = {
 const gameState = {
   language: "pt",
   selectedMap: "poolday",
-  menuMusic: null
+  menuMusic: null,
+  highScores: {
+    poolday: 0,
+    overpass: 0
+  }
 };
 
 const translations = {};
@@ -316,9 +320,37 @@ function addMenuBackground(scene) {
     .setDisplaySize(scene.scale.width, scene.scale.height)
     .setDepth(-20);
 
-  scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x000000, 0.38)
+  scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x000000, 0.5)
     .setOrigin(0)
     .setDepth(-10);
+}
+
+function getMenuTitleStyle(size = "48px") {
+  return {
+    fontSize: size,
+    color: "#ffffff",
+    fontStyle: "bold",
+    stroke: "#000000",
+    strokeThickness: 6
+  };
+}
+
+function getMenuOptionStyle(size = "28px") {
+  return {
+    fontSize: size,
+    color: "#ffffff",
+    stroke: "#000000",
+    strokeThickness: 5
+  };
+}
+
+function getMenuInfoStyle(size = "20px", color = "#f2cc60") {
+  return {
+    fontSize: size,
+    color,
+    stroke: "#000000",
+    strokeThickness: 4
+  };
 }
 
 function setupMenu(scene) {
@@ -328,10 +360,8 @@ function setupMenu(scene) {
   scene.selectedOption = 0;
   scene.menuTexts = [];
 
-  scene.titleText = scene.add.text(scene.scale.width / 2, 120, getText("title"), {
-    fontSize: "48px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
+  scene.titleText = scene.add.text(scene.scale.width / 2, 120, getText("title"), getMenuTitleStyle("48px"))
+    .setOrigin(0.5);
 
   createMenuOptions(scene);
   setupMenuInput(scene);
@@ -345,10 +375,9 @@ function createMenuOptions(scene) {
   scene.menuTexts = [];
 
   options.forEach((option, index) => {
-    const menuText = scene.add.text(scene.scale.width / 2, 240 + index * 58, option, {
-      fontSize: "28px",
-      color: "#ffffff"
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const menuText = scene.add.text(scene.scale.width / 2, 240 + index * 58, option, getMenuOptionStyle("28px"))
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
 
     menuText.on("pointerover", () => {
       scene.selectedOption = index;
@@ -394,6 +423,7 @@ function updateMenuSelection(scene) {
 
     text.setText(`${isSelected ? "> " : "  "}${getMenuOptions()[index]}`);
     text.setColor(isSelected ? "#f2cc60" : "#ffffff");
+    text.setScale(isSelected ? 1.08 : 1);
   });
 }
 
@@ -419,16 +449,13 @@ function setupMapSelect(scene) {
   scene.mapOptions = ["poolday", "overpass"];
   scene.mapTexts = [];
 
-  scene.add.text(scene.scale.width / 2, 100, getText("selectMap"), {
-    fontSize: "42px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
+  scene.add.text(scene.scale.width / 2, 100, getText("selectMap"), getMenuTitleStyle("42px"))
+    .setOrigin(0.5);
 
   scene.mapOptions.forEach((mapKey, index) => {
-    const mapText = scene.add.text(scene.scale.width / 2, 220 + index * 58, MAPS[mapKey].name, {
-      fontSize: "30px",
-      color: "#ffffff"
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const mapText = scene.add.text(scene.scale.width / 2, 220 + index * 58, MAPS[mapKey].name, getMenuOptionStyle("30px"))
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
 
     mapText.on("pointerover", () => {
       scene.selectedOption = index;
@@ -443,10 +470,8 @@ function setupMapSelect(scene) {
     scene.mapTexts.push(mapText);
   });
 
-  scene.add.text(scene.scale.width / 2, 520, getText("back"), {
-    fontSize: "20px",
-    color: "#f2cc60"
-  }).setOrigin(0.5);
+  scene.add.text(scene.scale.width / 2, 520, getText("back"), getMenuInfoStyle("20px", "#f2cc60"))
+    .setOrigin(0.5);
 
   setupMapSelectInput(scene);
   updateMapSelection(scene);
@@ -479,28 +504,22 @@ function updateMapSelection(scene) {
 
     text.setText(`${isSelected ? "> " : "  "}${MAPS[scene.mapOptions[index]].name}`);
     text.setColor(isSelected ? "#f2cc60" : "#ffffff");
+    text.setScale(isSelected ? 1.08 : 1);
   });
 }
 
 function setupRules(scene) {
   addMenuBackground(scene);
 
-  scene.add.text(scene.scale.width / 2, 90, getText("rulesTitle"), {
-    fontSize: "42px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
+  scene.add.text(scene.scale.width / 2, 90, getText("rulesTitle"), getMenuTitleStyle("42px"))
+    .setOrigin(0.5);
 
   getText("rulesText").forEach((line, index) => {
-    scene.add.text(120, 190 + index * 45, line, {
-      fontSize: "22px",
-      color: "#c9d1d9"
-    });
+    scene.add.text(120, 190 + index * 45, line, getMenuInfoStyle("22px", "#ffffff"));
   });
 
-  scene.add.text(scene.scale.width / 2, 520, getText("back"), {
-    fontSize: "20px",
-    color: "#f2cc60"
-  }).setOrigin(0.5);
+  scene.add.text(scene.scale.width / 2, 520, getText("back"), getMenuInfoStyle("20px", "#f2cc60"))
+    .setOrigin(0.5);
 
   scene.input.keyboard.on("keydown-ESC", () => {
     scene.scene.start("MenuScene");
@@ -1171,28 +1190,58 @@ function setupGameState(scene) {
   scene.isReloading = false;
   scene.reloadTimer = null;
   scene.isGameOver = false;
+  scene.currentMapKey = gameState.selectedMap;
 }
 
 function setupHud(scene) {
-  scene.hudText = scene.add.text(16, 16, "", {
-    fontSize: "18px",
-    color: "#ffffff"
-  });
+  scene.scoreText = scene.add.text(24, 22, "", getHudTextStyle("18px", "#ffffff"))
+    .setDepth(21);
 
-  scene.add.text(16, 44, getText("controls"), {
-    fontSize: "16px",
-    color: "#c9d1d9"
-  });
+  scene.livesText = scene.add.text(24, scene.scale.height - 68, "", getHudTextStyle("18px", "#ffffff"))
+    .setDepth(21);
+
+  scene.ammoText = scene.add.text(24, scene.scale.height - 30, "", getHudTextStyle("18px", "#ffffff"))
+    .setDepth(21);
+
+  scene.controlsText = scene.add.text(scene.scale.width - 24, scene.scale.height - 20, getText("controls"), getHudTextStyle("16px", "#f2cc60"))
+    .setOrigin(1)
+    .setAlign("right")
+    .setDepth(21);
 
   updateHud(scene);
+}
+
+function getHudTextStyle(size, color) {
+  return {
+    fontSize: size,
+    color,
+    stroke: "#000000",
+    strokeThickness: 6
+  };
 }
 
 function updateHud(scene) {
   const ammoText = scene.isReloading
     ? `${getText("ammo")}: ${scene.ammo}/${MAX_AMMO} (${getText("reloading")})`
     : `${getText("ammo")}: ${scene.ammo}/${MAX_AMMO}`;
+  const highScore = getHighScore(scene.currentMapKey);
 
-  scene.hudText.setText(`${getText("score")}: ${scene.score} | ${getText("lives")}: ${scene.lives} | ${ammoText}`);
+  scene.scoreText.setText(`${getText("score")}: ${scene.score} | ${getText("highScore")}: ${highScore}`);
+  scene.livesText.setText(`${getText("lives")}: ${scene.lives}`);
+  scene.ammoText.setText(ammoText);
+}
+
+function getHighScore(mapKey) {
+  return gameState.highScores[mapKey] || 0;
+}
+
+function updateHighScore(scene) {
+  if (scene.score > getHighScore(scene.currentMapKey)) {
+    gameState.highScores[scene.currentMapKey] = scene.score;
+    return true;
+  }
+
+  return false;
 }
 
 // Colisoes e overlaps
@@ -1256,7 +1305,19 @@ function setupGameOverInput(scene) {
 function showGameOver(scene) {
   scene.isGameOver = true;
   scene.lives = 0;
-  updateHud(scene);
+  const isNewHighScore = updateHighScore(scene);
+  const highScore = getHighScore(scene.currentMapKey);
+  const centerX = scene.scale.width / 2;
+  const centerY = scene.scale.height / 2;
+
+  [
+    scene.scoreText,
+    scene.livesText,
+    scene.ammoText,
+    scene.controlsText
+  ].forEach((gameObject) => {
+    gameObject.setVisible(false);
+  });
 
   scene.player.setVelocity(0, 0);
   destroyGroupObjects(scene.bullets);
@@ -1268,20 +1329,59 @@ function showGameOver(scene) {
     scene.reloadTimer = null;
   }
 
-  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 - 30, getText("gameOver"), {
-    fontSize: "48px",
-    color: "#ffffff"
-  }).setOrigin(0.5);
+  scene.add.rectangle(0, 0, scene.scale.width, scene.scale.height, 0x000000, 0.62)
+    .setOrigin(0)
+    .setDepth(100);
 
-  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 30, getText("restart"), {
-    fontSize: "22px",
-    color: "#c9d1d9"
-  }).setOrigin(0.5);
+  scene.add.rectangle(centerX, centerY, 520, 360, 0x111820, 0.94)
+    .setStrokeStyle(3, 0xf2cc60, 0.95)
+    .setDepth(101);
 
-  scene.add.text(scene.scale.width / 2, scene.scale.height / 2 + 64, getText("gameOverMenu"), {
+  scene.add.text(centerX, centerY - 130, getText("gameOver"), {
+    fontSize: "56px",
+    color: "#ffffff",
+    fontStyle: "bold",
+    stroke: "#000000",
+    strokeThickness: 6
+  }).setOrigin(0.5).setDepth(102);
+
+  scene.add.text(centerX, centerY - 58, `${getText("sessionScore")}: ${scene.score}`, {
+    fontSize: "26px",
+    color: "#ffffff",
+    stroke: "#000000",
+    strokeThickness: 4
+  }).setOrigin(0.5).setDepth(102);
+
+  scene.add.text(centerX, centerY - 18, `${getText("highScore")}: ${highScore}`, {
+    fontSize: "24px",
+    color: "#c9d1d9",
+    stroke: "#000000",
+    strokeThickness: 4
+  }).setOrigin(0.5).setDepth(102);
+
+  if (isNewHighScore) {
+    scene.add.text(centerX, centerY + 24, getText("newHighScore"), {
+      fontSize: "28px",
+      color: "#f2cc60",
+      fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 5
+    }).setOrigin(0.5).setDepth(102);
+  }
+
+  scene.add.text(centerX, centerY + 92, getText("restart"), {
     fontSize: "22px",
-    color: "#f2cc60"
-  }).setOrigin(0.5);
+    color: "#ffffff",
+    stroke: "#000000",
+    strokeThickness: 4
+  }).setOrigin(0.5).setDepth(102);
+
+  scene.add.text(centerX, centerY + 128, getText("gameOverMenu"), {
+    fontSize: "22px",
+    color: "#f2cc60",
+    stroke: "#000000",
+    strokeThickness: 4
+  }).setOrigin(0.5).setDepth(102);
 }
 
 function destroyGroupObjects(group) {
